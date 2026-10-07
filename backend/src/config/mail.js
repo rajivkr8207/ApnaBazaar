@@ -1,0 +1,12 @@
+import nodemailer from 'nodemailer';
+import Config from './Config.js';
+const MailTranspoter = nodemailer.createTransport({
+  host: Config.smtp_host,
+  port: 587,
+  secure: false,
+  auth: {
+    user: Config.smtp_user,
+    pass: Config.smtp_pass,
+  },
+});
+export default MailTranspoter;
