@@ -22,5 +22,3 @@ function createModule(name) {
 // createModule('cartItem');
 // createModule('payment');
 // createModule('paymentorderitem');
-
-

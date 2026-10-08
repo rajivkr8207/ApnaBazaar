@@ -13,10 +13,10 @@ import {
 } from './user.service.js';
 
 const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 // ─────────────────────────────────────────────
@@ -25,13 +25,21 @@ const cookieOptions = {
 export const register = asyncHandler(async (req, res) => {
   const { fullName, username, email, password, mobile } = req.body;
   const image = req.file ? req.file.path : null;
-  const user = await registerUser({ fullName, username, email, password, mobile, image, role: 'customer' });
+  const user = await registerUser({
+    fullName,
+    username,
+    email,
+    password,
+    mobile,
+    image,
+    role: 'customer',
+  });
   return res.status(201).json(new ApiResponse(201, { user }, 'User registered successfully'));
 });
 
 export const VerifyUserByOTPController = asyncHandler(async (req, res) => {
   const { email } = req.query;
-  const {  otp } = req.body;
+  const { otp } = req.body;
   const user = await verifyUserByOTP(email, otp);
   return res.status(200).json(new ApiResponse(200, { user }, 'User verified successfully'));
 });

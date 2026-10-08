@@ -19,8 +19,18 @@ export const registerUser = async ({
   }
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
-  const user = await User.create({ fullName, username, email, password, mobile, image, role, otp, otpExpire });
-  const mail =  await new MailService().SendRegisterMail(email, otp, fullName);
+  const user = await User.create({
+    fullName,
+    username,
+    email,
+    password,
+    mobile,
+    image,
+    role,
+    otp,
+    otpExpire,
+  });
+  const mail = await new MailService().SendRegisterMail(email, otp, fullName);
   if (!mail) {
     throw new ApiError(500, 'Failed to send verification email');
   }
@@ -28,7 +38,9 @@ export const registerUser = async ({
 };
 
 export const loginUser = async ({ identifier, password }) => {
-  const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }, { mobile: identifier }] }).select('+password');
+  const user = await User.findOne({
+    $or: [{ email: identifier }, { username: identifier }, { mobile: identifier }],
+  }).select('+password');
   if (!user) {
     throw new ApiError(404, 'User not found');
   }

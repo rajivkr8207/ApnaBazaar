@@ -16,13 +16,18 @@ const ensureCategoryExists = async (categoryId) => {
   }
 };
 
-const buildUniqueSlug = async (inputName, fallbackSlug) => {
+const buildUniqueSlug = async (inputName, fallbackSlug, excludeProductId = null) => {
   const base = fallbackSlug || slugify(inputName);
   if (!base) {
     throw new ApiError(400, 'A valid product slug could not be generated from the name');
   }
 
-  const existingProduct = await Product.findOne({ slug: base });
+  const filter = { slug: base };
+  if (excludeProductId) {
+    filter._id = { $ne: excludeProductId };
+  }
+
+  const existingProduct = await Product.findOne(filter);
   if (!existingProduct) {
     return base;
   }
@@ -30,7 +35,12 @@ const buildUniqueSlug = async (inputName, fallbackSlug) => {
   let suffix = 1;
   let candidate = `${base}-${suffix}`;
 
-  while (await Product.findOne({ slug: candidate })) {
+  while (
+    await Product.findOne({
+      slug: candidate,
+      ...(excludeProductId ? { _id: { $ne: excludeProductId } } : {}),
+    })
+  ) {
     suffix += 1;
     candidate = `${base}-${suffix}`;
   }
@@ -93,9 +103,11 @@ export const updateProduct = async (productId, sellerId, payload) => {
   }
 
   if (slug !== undefined) {
-    product.slug = slugify(slug) || product.slug;
+    const normalizedSlug = slugify(slug);
+    product.slug = normalizedSlug || product.slug;
+    product.slug = await buildUniqueSlug(product.slug, null, product._id);
   } else if (name !== undefined) {
-    product.slug = await buildUniqueSlug(product.name, product.slug);
+    product.slug = await buildUniqueSlug(product.name, product.slug, product._id);
   }
 
   if (description !== undefined) {
@@ -141,7 +153,14 @@ export const setProductActiveStatus = async (productId, sellerId, isActive) => {
   return await product.populate('category', 'name slug');
 };
 
-export const getAllProducts = async ({ sellerId, page = 1, limit = 10, isActive, category, search }) => {
+export const getAllProducts = async ({
+  sellerId,
+  page = 1,
+  limit = 10,
+  isActive,
+  category,
+  search,
+}) => {
   const query = { seller: sellerId };
 
   if (isActive !== undefined) {
@@ -183,7 +202,10 @@ export const getAllProducts = async ({ sellerId, page = 1, limit = 10, isActive,
 };
 
 export const getProductById = async (productId, sellerId) => {
-  const product = await Product.findOne({ _id: productId, seller: sellerId }).populate('category', 'name slug');
+  const product = await Product.findOne({ _id: productId, seller: sellerId }).populate(
+    'category',
+    'name slug',
+  );
 
   if (!product) {
     throw new ApiError(404, 'Product not found or you do not own this product');

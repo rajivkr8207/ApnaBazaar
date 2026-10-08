@@ -14,7 +14,6 @@ const errorHandler = (err, req, res, next) => {
     errors: error.errors,
     stack: Config.Node_ENV === 'development' ? error.stack : undefined,
   });
-  
 };
 
 export { errorHandler };

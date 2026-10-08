@@ -21,9 +21,25 @@ const sellerOnly = [verifyJWT, verifySeller];
 productRouter.post('/', sellerOnly, createProductValidation, createProductController);
 productRouter.get('/', sellerOnly, getAllProductsController);
 productRouter.get('/:id', sellerOnly, productIdParamValidation, getProductByIdController);
-productRouter.patch('/:id', sellerOnly, productIdParamValidation, updateProductValidation, updateProductController);
-productRouter.patch('/:id/activate', sellerOnly, productIdParamValidation, activateProductController);
-productRouter.patch('/:id/deactivate', sellerOnly, productIdParamValidation, deactivateProductController);
+productRouter.patch(
+  '/:id',
+  sellerOnly,
+  productIdParamValidation,
+  updateProductValidation,
+  updateProductController,
+);
+productRouter.patch(
+  '/:id/activate',
+  sellerOnly,
+  productIdParamValidation,
+  activateProductController,
+);
+productRouter.patch(
+  '/:id/deactivate',
+  sellerOnly,
+  productIdParamValidation,
+  deactivateProductController,
+);
 productRouter.delete('/:id', sellerOnly, productIdParamValidation, deleteProductController);
 
 export default productRouter;

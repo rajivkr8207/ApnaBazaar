@@ -17,13 +17,9 @@ export const createProductValidation = [
     .isLength({ max: 150 })
     .withMessage('Product name cannot exceed 150 characters'),
 
-  body('category')
-    .isMongoId()
-    .withMessage('A valid category ID is required'),
+  body('category').isMongoId().withMessage('A valid category ID is required'),
 
-  body('price')
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a non-negative number'),
+  body('price').isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
 
   body('slug')
     .optional()
@@ -52,10 +48,7 @@ export const createProductValidation = [
     .custom((images) => images.every((image) => typeof image === 'string'))
     .withMessage('Each image must be a string URL or path'),
 
-  body('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive must be a boolean'),
+  body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
 
   validate,
 ];
@@ -74,15 +67,9 @@ export const updateProductValidation = [
     .isLength({ max: 150 })
     .withMessage('Product name cannot exceed 150 characters'),
 
-  body('category')
-    .optional()
-    .isMongoId()
-    .withMessage('A valid category ID is required'),
+  body('category').optional().isMongoId().withMessage('A valid category ID is required'),
 
-  body('price')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a non-negative number'),
+  body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
 
   body('slug')
     .optional()
@@ -113,7 +100,10 @@ export const updateProductValidation = [
 
   body().custom((_, { req }) => {
     const allowedFields = ['name', 'category', 'price', 'slug', 'description', 'images'];
-    if (!req.body || !allowedFields.some((field) => Object.prototype.hasOwnProperty.call(req.body, field))) {
+    if (
+      !req.body ||
+      !allowedFields.some((field) => Object.prototype.hasOwnProperty.call(req.body, field))
+    ) {
       throw new Error('At least one valid product field must be provided');
     }
     return true;

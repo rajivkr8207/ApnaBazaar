@@ -36,8 +36,7 @@ authRouter.post('/register', registerValidation, register);
  * @desc    Verify user email using OTP
  * @access  Protected
  */
-authRouter.post('/verify-email',  VerifyUserByOTPController);
-
+authRouter.post('/verify-email', VerifyUserByOTPController);
 
 authRouter.post('/resend-otp', verifyJWT, ResendUserOtpController);
 /**

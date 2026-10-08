@@ -17,18 +17,8 @@ const categoryRouter = Router();
 const adminOnly = [verifyJWT, verifyAdmin];
 
 categoryRouter.post('/', adminOnly, createCategoryValidation, createCategoryController);
-categoryRouter.patch(
-  '/:id',
-  adminOnly,
-  updateCategoryValidation,
-  updateCategoryController,
-);
-categoryRouter.delete(
-  '/:id',
-  adminOnly,
-  categoryIdParamValidation,
-  deleteCategoryController,
-);
+categoryRouter.patch('/:id', adminOnly, updateCategoryValidation, updateCategoryController);
+categoryRouter.delete('/:id', adminOnly, categoryIdParamValidation, deleteCategoryController);
 categoryRouter.patch(
   '/:id/activate',
   adminOnly,

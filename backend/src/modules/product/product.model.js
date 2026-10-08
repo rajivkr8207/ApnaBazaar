@@ -49,7 +49,8 @@ const productSchema = new mongoose.Schema(
       type: [String],
       default: [],
       validate: {
-        validator: (value) => Array.isArray(value) && value.every((image) => typeof image === 'string'),
+        validator: (value) =>
+          Array.isArray(value) && value.every((image) => typeof image === 'string'),
         message: 'Product images must be an array of strings',
       },
     },
