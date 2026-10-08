@@ -14,9 +14,9 @@ function createModule(name) {
     fs.writeFileSync(path.join(folder, `${name}.${file}.js`), '');
   });
 }
-createModule('category');
-createModule('product');
-// createModule('price');
+// createModule('category');
+// createModule('product');
+// createModule('productStock');
 // createModule('productVariant');
 // createModule('cart');
 // createModule('cartItem');

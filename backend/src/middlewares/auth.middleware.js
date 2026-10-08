@@ -25,6 +25,14 @@ export const verifyAdmin = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const verifySeller = asyncHandler(async (req, res, next) => {
+  if (req.user && req.user.role === 'seller') {
+    next();
+  } else {
+    throw new ApiError(403, 'Forbidden: Seller access required');
+  }
+});
+
 export const verifyCashier = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.role === 'cashier') {
     next();

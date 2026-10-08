@@ -1,0 +1,193 @@
+import Product from './product.model.js';
+import Category from '../category/category.model.js';
+import { ApiError } from '../../utils/ApiError.js';
+
+const slugify = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const ensureCategoryExists = async (categoryId) => {
+  const category = await Category.findById(categoryId);
+  if (!category) {
+    throw new ApiError(404, 'Category not found');
+  }
+};
+
+const buildUniqueSlug = async (inputName, fallbackSlug) => {
+  const base = fallbackSlug || slugify(inputName);
+  if (!base) {
+    throw new ApiError(400, 'A valid product slug could not be generated from the name');
+  }
+
+  const existingProduct = await Product.findOne({ slug: base });
+  if (!existingProduct) {
+    return base;
+  }
+
+  let suffix = 1;
+  let candidate = `${base}-${suffix}`;
+
+  while (await Product.findOne({ slug: candidate })) {
+    suffix += 1;
+    candidate = `${base}-${suffix}`;
+  }
+
+  return candidate;
+};
+
+export const createProduct = async (payload, sellerId) => {
+  const { name, category, slug, description = '', price, images = [] } = payload;
+
+  if (!name || !String(name).trim()) {
+    throw new ApiError(400, 'Product name is required');
+  }
+
+  if (!category) {
+    throw new ApiError(400, 'Category is required');
+  }
+
+  if (price === undefined || Number(price) < 0) {
+    throw new ApiError(400, 'Price must be provided and cannot be negative');
+  }
+
+  await ensureCategoryExists(category);
+
+  const uniqueSlug = await buildUniqueSlug(name, slug);
+
+  const product = await Product.create({
+    seller: sellerId,
+    category,
+    name: String(name).trim(),
+    slug: uniqueSlug,
+    description: String(description).trim(),
+    price: Number(price),
+    images,
+    isActive: true,
+  });
+
+  return await product.populate('category', 'name slug');
+};
+
+export const updateProduct = async (productId, sellerId, payload) => {
+  const product = await Product.findOne({ _id: productId, seller: sellerId });
+
+  if (!product) {
+    throw new ApiError(404, 'Product not found or you do not own this product');
+  }
+
+  const { name, category, slug, description, price, images } = payload;
+
+  if (name !== undefined) {
+    if (!String(name).trim()) {
+      throw new ApiError(400, 'Product name cannot be empty');
+    }
+    product.name = String(name).trim();
+  }
+
+  if (category !== undefined) {
+    await ensureCategoryExists(category);
+    product.category = category;
+  }
+
+  if (slug !== undefined) {
+    product.slug = slugify(slug) || product.slug;
+  } else if (name !== undefined) {
+    product.slug = await buildUniqueSlug(product.name, product.slug);
+  }
+
+  if (description !== undefined) {
+    product.description = String(description).trim();
+  }
+
+  if (price !== undefined) {
+    if (Number(price) < 0) {
+      throw new ApiError(400, 'Price cannot be negative');
+    }
+    product.price = Number(price);
+  }
+
+  if (images !== undefined) {
+    product.images = images;
+  }
+
+  await product.save();
+
+  return await product.populate('category', 'name slug');
+};
+
+export const deleteProduct = async (productId, sellerId) => {
+  const product = await Product.findOneAndDelete({ _id: productId, seller: sellerId });
+
+  if (!product) {
+    throw new ApiError(404, 'Product not found or you do not own this product');
+  }
+
+  return product;
+};
+
+export const setProductActiveStatus = async (productId, sellerId, isActive) => {
+  const product = await Product.findOne({ _id: productId, seller: sellerId });
+
+  if (!product) {
+    throw new ApiError(404, 'Product not found or you do not own this product');
+  }
+
+  product.isActive = isActive;
+  await product.save();
+
+  return await product.populate('category', 'name slug');
+};
+
+export const getAllProducts = async ({ sellerId, page = 1, limit = 10, isActive, category, search }) => {
+  const query = { seller: sellerId };
+
+  if (isActive !== undefined) {
+    query.isActive = isActive === true || isActive === 'true';
+  }
+
+  if (category) {
+    query.category = category;
+  }
+
+  if (search) {
+    query.name = { $regex: search, $options: 'i' };
+  }
+
+  const safePage = Math.max(Number(page) || 1, 1);
+  const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
+  const skip = (safePage - 1) * safeLimit;
+
+  const [items, totalItems] = await Promise.all([
+    Product.find(query)
+      .populate('category', 'name slug')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(safeLimit),
+    Product.countDocuments(query),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / safeLimit) || 1;
+
+  return {
+    items,
+    page: safePage,
+    limit: safeLimit,
+    totalItems,
+    totalPages,
+    hasNextPage: safePage < totalPages,
+    hasPrevPage: safePage > 1,
+  };
+};
+
+export const getProductById = async (productId, sellerId) => {
+  const product = await Product.findOne({ _id: productId, seller: sellerId }).populate('category', 'name slug');
+
+  if (!product) {
+    throw new ApiError(404, 'Product not found or you do not own this product');
+  }
+
+  return product;
+};
