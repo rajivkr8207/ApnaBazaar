@@ -96,7 +96,8 @@ The values above are initial tokens; centralize any future refinements in the sa
 - Empty: invitation to continue browsing.
 - Populated: line items, variant identifiers/options, quantity buttons, remove controls, and snapshot subtotal.
 - API rejection: explain unavailable item/stock/quantity without implying the cart was updated.
-- Until a complete order/payment flow exists, any checkout entry point must clearly report that checkout is unavailable rather than imply that an order completed.
+- The backend Razorpay APIs exist, but no frontend is implemented. When building it, checkout must collect a shipping address, submit the authenticated checkout request with an idempotency key, launch Razorpay Checkout with the returned public key/order/paise amount, then call backend verification.
+- Show success only after backend verification reports captured payment. Represent pending, expired, refund-pending, and failure states honestly.
 
 ## 5. Interaction behavior
 
@@ -108,6 +109,7 @@ The values above are initial tokens; centralize any future refinements in the sa
 - When implemented, adding an item must check server-side product, variant, and stock state. Guests are asked to sign in first; after login, a pending add may be resumed.
 - Bag count reflects total cart quantity, not distinct line count.
 - Quantity controls call the authenticated cart API; the server remains authoritative.
+- Checkout displays the server-calculated INR total and required address. Explain that inventory is reserved for 15 minutes.
 - Drawers and modals must be dismissible with their close controls or backdrop; Escape-key dismissal is a recommended accessibility behavior.
 
 ## 6. Responsive behavior
@@ -131,7 +133,7 @@ The values above are initial tokens; centralize any future refinements in the sa
 
 - Product/category names, prices, images, and active variant choices come from API data.
 - The storefront currently has no confirmed shipping thresholds, return policy, product reviews, newsletter service, or completed checkout. Avoid copy that implies these services are operational.
-- Never display a successful subscription or purchase based only on a front-end interaction.
+- Never display a successful subscription or purchase based only on a front-end interaction; wait for backend payment verification.
 - Price snapshots in a cart are display values, not a final checkout quote.
 
 ## 9. Required frontend stack and organization

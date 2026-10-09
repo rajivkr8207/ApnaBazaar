@@ -27,6 +27,10 @@ const Config = {
   imagekit_private_key: process.env.IMAGE_KIT_PRIVATE_KEY,
   imagekit_url_endpoint: process.env.IMAGE_KIT_URL_ENDPOINT,
 
+  // Razorpay
+  razorpay_key_id: process.env.RAZORPAY_KEY_ID,
+  razorpay_key_secret: process.env.RAZORPAY_KEY_SECRET,
+
   // Frontend
   frontend_url: process.env.FRONTEND_URL,
 };

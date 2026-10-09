@@ -33,6 +33,14 @@ export const verifySeller = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const verifyCustomer = asyncHandler(async (req, res, next) => {
+  if (req.user && req.user.role === 'customer') {
+    next();
+  } else {
+    throw new ApiError(403, 'Forbidden: Customer access required');
+  }
+});
+
 export const verifyCashier = asyncHandler(async (req, res, next) => {
   if (req.user && req.user.role === 'cashier') {
     next();

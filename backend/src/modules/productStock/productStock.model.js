@@ -19,6 +19,20 @@ const productStockSchema = new mongoose.Schema(
       required: true,
       default: 0,
       min: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: 'Stock quantity must be an integer',
+      },
+    },
+    reservedQuantity: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: 'Reserved stock quantity must be an integer',
+      },
     },
     stockStatus: {
       type: String,

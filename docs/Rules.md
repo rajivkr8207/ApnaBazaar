@@ -50,6 +50,9 @@ These rules apply to contributions in this repository. Follow the installed code
 - Public registration may create customers only. Privileged account provisioning requires an authorized flow.
 - Use HTTP-only cookies for browser tokens; never put access/refresh tokens in localStorage or sessionStorage.
 - Maintain restrictive CORS, request size limits, Helmet CSP, rate limiting, and safe rendering of untrusted data.
+- Verify Razorpay checkout signatures and webhook signatures using server secrets; retain the webhook's exact raw body for HMAC verification.
+- Treat Razorpay provider state as authoritative only after checking order ID, amount, currency, and captured state. Use idempotency keys for checkout and never fulfill from the browser callback alone.
+- Reserve and settle inventory transactionally. Do not lower seller stock below reserved quantity; reconcile late captures/refunds explicitly.
 - Escape user search input before compiling database regexes and cap search length/page size.
 
 ## Frontend and UX

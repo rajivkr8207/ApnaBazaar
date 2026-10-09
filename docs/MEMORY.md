@@ -39,8 +39,12 @@ This document records stable project facts and implementation preferences for co
 - Public categories: `GET /categories`.
 - Seller products, variants, and stock APIs require JWT and seller role.
 - Cart APIs require JWT and are user-scoped.
+- Razorpay payment routes are mounted under `/payments`: authenticated customer checkout/verification, signed provider webhooks, user-scoped order history, and admin-only full refunds.
+- Checkout trusts server-side product prices, supports INR only, requires an idempotency key and shipping snapshot, and reserves stock transactionally for 15 minutes.
+- Razorpay credentials are `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET`; never expose either secret.
+- MongoDB replica-set/sharded transactions are required for payment inventory safety. The customer-facing frontend is still absent.
 - Check `backend/src/app.routes.js` and the corresponding route module for the current exact endpoints before documenting or changing them.
-- Payment module files exist but the payment router is not mounted in `backend/src/app.routes.js`; do not describe a payment endpoint as available.
+- Do not fulfill on a client callback alone. Verify HMAC and provider payment ID/order/amount/currency/captured status, and treat webhooks idempotently.
 
 ## Working approach
 

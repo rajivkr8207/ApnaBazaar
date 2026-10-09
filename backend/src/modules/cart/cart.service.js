@@ -56,11 +56,12 @@ const getAvailableItem = async (productId, variantId) => {
     product: product._id,
     variant: variant ? variant._id : null,
   });
-  if (!stock || stock.quantity < 1) {
+  const availableQuantity = stock ? stock.quantity - (stock.reservedQuantity || 0) : 0;
+  if (availableQuantity < 1) {
     throw new ApiError(409, 'Product is out of stock');
   }
 
-  return { product, variant, stock };
+  return { product, variant, stock, availableQuantity };
 };
 
 const createPriceSnapshot = (product, variant) => ({
@@ -92,18 +93,17 @@ export const addItemToCart = async (userId, { productId, variantId, quantity = 1
     throw new ApiError(400, 'Quantity must be a positive integer');
   }
 
-  const { product, variant, stock } = await getAvailableItem(productId, variantId);
+  const { product, variant, availableQuantity } = await getAvailableItem(productId, variantId);
   const cart = await findOrCreateCart(userId);
   const existingItem = cart.items.find(
     (item) =>
       item.product.toString() === product._id.toString() &&
-      (item.variant ? item.variant.toString() : null) ===
-        (variant ? variant._id.toString() : null),
+      (item.variant ? item.variant.toString() : null) === (variant ? variant._id.toString() : null),
   );
   const updatedQuantity = (existingItem?.quantity || 0) + safeQuantity;
 
-  if (updatedQuantity > stock.quantity) {
-    throw new ApiError(409, `Only ${stock.quantity} item(s) are available`);
+  if (updatedQuantity > availableQuantity) {
+    throw new ApiError(409, `Only ${availableQuantity} item(s) are available`);
   }
 
   if (existingItem) {
@@ -138,9 +138,12 @@ export const updateCartItemQuantity = async (userId, itemId, quantity) => {
     throw new ApiError(404, 'Cart item not found');
   }
 
-  const { product, variant, stock } = await getAvailableItem(item.product, item.variant);
-  if (safeQuantity > stock.quantity) {
-    throw new ApiError(409, `Only ${stock.quantity} item(s) are available`);
+  const { product, variant, availableQuantity } = await getAvailableItem(
+    item.product,
+    item.variant,
+  );
+  if (safeQuantity > availableQuantity) {
+    throw new ApiError(409, `Only ${availableQuantity} item(s) are available`);
   }
 
   item.quantity = safeQuantity;

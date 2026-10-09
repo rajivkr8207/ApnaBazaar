@@ -26,7 +26,13 @@ const ensureVariantBelongsToSellerProduct = async (productId, variantId, sellerI
   return { product, variant };
 };
 
-export const upsertProductStock = async ({ productId, sellerId, variantId, quantity, stockStatus }) => {
+export const upsertProductStock = async ({
+  productId,
+  sellerId,
+  variantId,
+  quantity,
+  stockStatus,
+}) => {
   await ensureVariantBelongsToSellerProduct(productId, variantId, sellerId);
 
   const safeQuantity = Number(quantity);
@@ -37,6 +43,12 @@ export const upsertProductStock = async ({ productId, sellerId, variantId, quant
   const stockDoc = await ProductStock.findOne({ product: productId, variant: variantId || null });
 
   if (stockDoc) {
+    if (safeQuantity < (stockDoc.reservedQuantity || 0)) {
+      throw new ApiError(
+        409,
+        'Stock quantity cannot be lower than the quantity reserved for pending checkouts',
+      );
+    }
     stockDoc.quantity = safeQuantity;
     if (stockStatus) {
       stockDoc.stockStatus = stockStatus;
@@ -57,7 +69,9 @@ export const getProductStock = async ({ productId, sellerId, variantId }) => {
   await ensureVariantBelongsToSellerProduct(productId, variantId || null, sellerId);
 
   if (variantId) {
-    const stock = await ProductStock.findOne({ product: productId, variant: variantId }).populate('variant');
+    const stock = await ProductStock.findOne({ product: productId, variant: variantId }).populate(
+      'variant',
+    );
     return stock;
   }
 

@@ -25,7 +25,7 @@ ProductVariant 1 ─── * ProductStock (variant stock)
 User 1 ─── 1 Cart
 Cart 1 ─── * CartItem ─── 1 Product
 CartItem 0..1 ─── 1 ProductVariant
-Payment 1 ─── * payment snapshot items (current partial payment model)
+Payment/order 1 ─── * immutable embedded order item snapshots
 ```
 
 ## 3. Model definitions
@@ -81,7 +81,7 @@ Fields: `product`, optional `variant`, integer-like non-negative `quantity`, `st
 
 The current status hook maps zero to `out_of_stock`, quantities 1–5 to `low_stock`, and higher values to `in_stock`. This threshold is a product decision and should be centralized/configured if it needs to vary.
 
-Stock is a separate collection, allowing variant-level stock. Before checkout is added, inventory changes must be atomic or guarded against concurrent purchases. A cart validation alone does not reserve inventory.
+Stock is a separate collection, allowing variant-level stock. `reservedQuantity` tracks stock held for pending checkouts; available stock is `quantity - reservedQuantity`. Checkout reserves stock with a conditional transactional update. Settlement decrements both physical `quantity` and `reservedQuantity`; expiration releases only the reservation. Seller stock updates cannot lower physical quantity below active reservations. MongoDB must run as a replica set or sharded cluster for these transactions.
 
 ### Cart
 
@@ -92,15 +92,23 @@ One cart per user, with embedded items containing:
 - positive integer quantity
 - price snapshot `{ amount, currency }`
 
-The cart is mutable and user-scoped. It is not an order record and is not a stock reservation. Revalidate item existence, active/published state, current price, currency, and stock during checkout.
+The cart is mutable and user-scoped. It is not an order record and is not a stock reservation. Cart availability checks account for pending reservations. Checkout revalidates item existence, active/published state, current price, currency, and available stock.
 
 ### Payment
 
-The partial payment schema includes status, price, provider metadata, user reference, and embedded item snapshots. Do not rely on it as a complete order model. Before launch, define durable order and seller-fulfillment records, immutable line-item snapshots, payment idempotency, signature verification, status transitions, refunds, and stock reservation/release semantics.
+The `Payment` collection is also the current order record. It stores:
+
+- User reference and a unique sparse hash of the caller's idempotency key.
+- Status (`pending`, `paid`, `failed`, `expired`, `refund_pending`, `refund_failed`, or `refunded`).
+- Razorpay order/payment/refund IDs and refund receipt metadata; no provider secrets.
+- Immutable product/variant/seller, title, SKU, image, quantity, unit-price, and line-total snapshots.
+- Required shipping-address snapshot, order total/currency, reservation expiry, and payment/refund timestamps.
+
+Checkout currently accepts INR only and refunds are full-order only. Seller transfers/payouts, tax/shipping charges, fulfillment/tracking, returns, and partial refunds are not implemented. `refund_pending` and `refund_failed` require operational reconciliation. A completed refund does not restock inventory.
 
 ## 4. Index design and review
 
-Indexes currently support unique identity/slug/SKU lookups, seller product lists, category filtering, stock lookups, and one-cart-per-user access.
+Indexes also support unique Razorpay order IDs, idempotency lookup, and customer order history, in addition to identity/slug/SKU, seller/category/stock, and one-cart-per-user access.
 
 Review index declarations against production query patterns:
 
@@ -121,6 +129,8 @@ Service-layer checks are needed for:
 3. Category exists and is permitted.
 4. Product/variant is purchasable and has enough stock.
 5. Cart price is recalculated from the current catalog before an order/payment is created.
+6. Confirm the Razorpay order, amount, currency, signature, and captured state before fulfilling.
+7. Reserve, settle, and release inventory inside transactions.
 
 ## 6. Schema evolution
 

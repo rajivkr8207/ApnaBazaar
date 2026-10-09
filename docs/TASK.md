@@ -56,10 +56,11 @@ This plan reflects the repository's current state. Checkboxes distinguish existi
 - [x] Validate product activity, variant membership/activity, stock existence, and requested quantity on mutation.
 - [ ] Decide whether cart fetch should reconcile or flag removed/inactive/out-of-stock items.
 - [ ] Make concurrent cart writes safe against lost updates where required.
-- [ ] Implement durable order and seller-fulfillment schemas with immutable item/address/price/tax snapshots.
-- [ ] Recalculate totals from current database data at checkout.
-- [ ] Add atomic/transactional stock reservation, decrement, release, and idempotent retry behavior.
-- [ ] Implement payment provider order creation, signature/webhook verification, payment status transitions, failure handling, and refunds.
+- [x] Persist durable order/payment records with immutable item, seller, price, and address snapshots. Seller-fulfillment records and tax/shipping snapshots remain future work.
+- [x] Recalculate item prices from current product/variant data at checkout; checkout currently supports INR and does not calculate tax or shipping.
+- [x] Add transactional stock reservation, decrement, release, and idempotent checkout behavior.
+- [x] Implement Razorpay order creation, checkout-signature/webhook verification, payment status transitions, failure handling, late-capture refunds, and admin full-refund requests.
+- [x] Add an admin queue for refund requests requiring reconciliation.
 - [ ] Add end-to-end tests for concurrent checkout, duplicate webhooks, payment failure, and inventory release.
 - [ ] Replace the storefront's unavailable-checkout message only after the real flow passes tests.
 
@@ -78,8 +79,8 @@ This plan reflects the repository's current state. Checkboxes distinguish existi
 1. Establish MongoDB connectivity, sample development seed data, and meaningful tests for current catalog/cart/seller APIs.
 2. Resolve schema/index behavior and delete/lifecycle policies against existing data.
 3. Build the required Vite/React frontend, wire it to Express/API, and test account/catalog/cart against a real local database, including mobile accessibility.
-4. Design order/fulfillment and concurrency-safe inventory before integrating payment.
-5. Complete real payment and webhook workflows, then enable checkout UI.
+4. Add tested seller-fulfillment, tax/shipping, and release-ready operations workflows.
+5. Build and test the customer checkout UI against the existing Razorpay APIs before enabling storefront purchases.
 6. Add production operational controls and perform release acceptance.
 
 ## Definition of done

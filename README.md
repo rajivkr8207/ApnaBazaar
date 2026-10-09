@@ -2,7 +2,7 @@
 
 ApnaBazaar is a multi-vendor commerce project with an Express/MongoDB backend and a lightweight sneaker-focused storefront. Sellers manage their own products, variants, and inventory. Customers can browse the public catalog and maintain an authenticated cart.
 
-> **Current scope:** backend catalog and authenticated-cart APIs are present, but no frontend source/build is currently present. Checkout, orders, and completed payment workflows are not available.
+> **Current scope:** backend catalog, authenticated-cart, and Razorpay payment/order APIs are present. The customer-facing frontend is not implemented yet.
 
 ## Repository
 
@@ -25,13 +25,15 @@ docs/          Product, architecture, database, design, and implementation docs
 
 - A Node.js version supported by the installed dependencies.
 - MongoDB reachable from the backend process.
+- MongoDB configured as a replica set or sharded cluster; checkout uses transactions.
 - SMTP settings for email-based registration verification if using local signup.
 - Valid JWT secrets and expiry values.
+- Razorpay test/live API credentials and a webhook secret.
 
 ## Local setup
 
 1. Copy `backend/.env.example` to `backend/.env`.
-2. Set `PORT`, `MONGODB_URI`, access/refresh JWT secrets and expiries, and `FRONTEND_URL`.
+2. Set `PORT`, `MONGODB_URI`, access/refresh JWT secrets and expiries, `FRONTEND_URL`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET`.
 3. Configure SMTP if verification emails are needed. ImageKit and Redis variables are optional for the storefront unless their corresponding services are used.
 4. Install backend dependencies and start the server:
 
@@ -57,8 +59,12 @@ All routes are prefixed by `/api/v1`.
 | Seller variants    | `/products/:productId/variants`                                                                                 |
 | Seller stock       | `/products/:productId/stock` and `/products/:productId/variants/:variantId/stock`                               |
 | Authenticated cart | `GET /cart`, `POST /cart/items`, `PATCH /cart/items/:itemId`, `DELETE /cart/items/:itemId`, `DELETE /cart`      |
+| Payments/orders | `POST /payments/checkout`, `POST /payments/verify`, `POST /payments/webhook`, `GET /payments`, `GET /payments/:paymentId` |
+| Admin refund | `POST /payments/:paymentId/refund` |
 
 See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full route and module map.
+
+Checkout accepts INR carts only and requires a delivery-address snapshot plus an `Idempotency-Key` header. Configure Razorpay webhook events `payment.authorized`, `payment.captured`, `payment.failed`, `order.paid`, `refund.processed`, and `refund.failed` at `/api/v1/payments/webhook`. The backend APIs are implemented, but a customer-facing checkout UI is not present yet.
 
 ## Development commands
 

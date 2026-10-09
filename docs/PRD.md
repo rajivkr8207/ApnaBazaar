@@ -21,7 +21,7 @@ The product should make those two experiences feel like one cohesive marketplace
 - Choose an available product variant.
 - Sign in and manage a personal cart.
 - See product options and the price captured for each cart item.
-- Eventually complete checkout, payment, and order tracking (not yet implemented end to end).
+- Start checkout, complete Razorpay payment, and view persisted order history; fulfillment/tracking is not yet available.
 
 ### Seller
 
@@ -97,13 +97,26 @@ Admin and seller account provisioning policy should be explicitly defined before
 - Quantity changes and additions validate current availability.
 - Price snapshots are for cart display only; checkout must recompute all values.
 
+### Checkout and payment
+
+- An authenticated customer can start checkout only with a non-empty cart and a delivery-address snapshot.
+- The backend recalculates current product/variant prices, accepts INR carts only, and creates a Razorpay order. Client-provided prices are never trusted.
+- Checkout requires an `Idempotency-Key`; a retry reuses its pending order rather than creating another.
+- Persist immutable product, variant, seller, quantity, price, and address snapshots with the order/payment record.
+- Reserve stock transactionally for 15 minutes. Decrement physical stock only after Razorpay-confirmed capture; release reservations at expiry.
+- Verify the Razorpay checkout signature and fetch the provider's payment status, amount, currency, and order ID before marking the order paid.
+- Process signed Razorpay webhooks idempotently. If capture arrives after inventory reservation expiry, request a full refund rather than fulfill unreserved inventory.
+- A failed Razorpay payment attempt releases its reservation; retry by starting a new checkout/provider order.
+- Allow administrators to request full refunds for captured orders. A refund does not automatically restock inventory.
+- Never report payment success based only on the browser callback.
+
 ### Storefront
 
 - Landing page introduces the brand, provides category and product discovery, and offers search/sort controls.
 - Product cards display product imagery, name, category/brand, price, and available variant selection.
 - Bag UI displays items, quantity controls, removals, and a subtotal based on stored cart snapshots.
 - A visitor may browse before sign-in; cart mutation requires authentication.
-- Unimplemented checkout and newsletter features must be labelled honestly and must not simulate a successful transaction/subscription.
+- The backend payment API is implemented, but the storefront checkout UI is not. Newsletter features remain unimplemented; neither flow may simulate success.
 
 ## 7. Non-functional requirements
 
@@ -122,9 +135,7 @@ Admin and seller account provisioning policy should be explicitly defined before
 
 ## 8. Out of scope for the current increment
 
-- Full checkout/order/fulfillment and returns workflow.
-- Payment gateway integration and verified webhooks.
-- Atomic stock reservation, decrement, release, and reconciliation at checkout.
+- Shipping/tax calculation, seller split settlements/transfers, fulfillment/tracking, returns, and partial refunds.
 - Seller dashboard and admin dashboard UIs.
 - Google OAuth implementation.
 - Newsletter collection/subscription service.
@@ -136,7 +147,7 @@ Implemented in the repository: user/auth APIs, category admin APIs and hierarchy
 
 Not implemented in the repository: the frontend itself. `frontend/` is empty, there is no frontend package manifest or Vite build, and the backend's static middleware/fallback target (`public/dist`) is not present. The requested React stack and feature-based structure below are requirements for the future frontend, not claims about current code.
 
-Also incomplete or requiring verification: live MongoDB seed/catalog setup, production onboarding policy, robust cart concurrency handling, end-to-end checkout/payments/orders, account registration/verification UI, seller/admin dashboards, automated backend tests, and production operational documentation. Payment-related model/service/controller files exist but are not mounted as an API route.
+Backend Razorpay checkout/order snapshots, verification, signed webhooks, transactional inventory reservation/settlement, expiry, order history, and admin full refunds are implemented. Still incomplete or requiring verification: customer-facing checkout UI, live Razorpay test/live account and webhook flow, live MongoDB seed/catalog setup, production onboarding policy, general cart concurrency behavior, shipping/tax and seller settlement/fulfillment, account registration/verification UI, seller/admin dashboards, automated backend tests, and production operational documentation.
 
 ## 10. Acceptance checklist for releases
 

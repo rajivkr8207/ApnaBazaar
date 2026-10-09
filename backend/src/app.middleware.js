@@ -12,7 +12,7 @@ const corsOption = {
   origin: Config.frontend_url,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
 };
 
 const limiter = rateLimit({
@@ -24,16 +24,28 @@ const limiter = rateLimit({
 });
 
 export const Middleware = (app) => {
-  app.use(express.json({ limit: '16kb' }));
+  app.use(
+    express.json({
+      limit: '16kb',
+      verify: (req, res, buffer) => {
+        if (req.originalUrl.startsWith('/api/v1/payments/webhook')) {
+          req.rawBody = Buffer.from(buffer);
+        }
+      },
+    }),
+  );
   app.use(express.urlencoded({ extended: true, limit: '16kb' }));
   app.use(cookieParser());
   app.use(cors(corsOption));
-  app.use(morgan("dev"))
+  app.use(morgan('dev'));
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           imgSrc: ["'self'", 'data:', 'https://images.unsplash.com'],
+          scriptSrc: ["'self'", 'https://checkout.razorpay.com'],
+          connectSrc: ["'self'", 'https://api.razorpay.com'],
+          frameSrc: ["'self'", 'https://checkout.razorpay.com', 'https://api.razorpay.com'],
           styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         },

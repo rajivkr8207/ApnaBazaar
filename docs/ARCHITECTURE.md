@@ -4,7 +4,7 @@
 
 ApnaBazaar is a multi-vendor commerce application. Sellers manage their own products, variants, and inventory. Customers can browse the public catalog and maintain a personal cart. Administrative category management and account capabilities are provided by the backend.
 
-The repository currently contains the Node.js backend only; the `frontend/` directory is empty and no frontend build is checked in. Checkout, order fulfillment, and seller/admin dashboards are not implemented end to end.
+The repository currently contains the Node.js backend only; the `frontend/` directory is empty and no frontend build is checked in. Backend checkout/payment APIs exist, but customer-facing payment UI, order fulfillment, and seller/admin dashboards are not implemented end to end.
 
 ## 2. Runtime and technology
 
@@ -39,7 +39,7 @@ backend/
       productVariant/       # product options / variants
       productStock/         # inventory by product or variant
       cart/                 # authenticated customer cart
-      payment/              # payment-related code; checkout is incomplete
+      payment/              # Razorpay checkout, verification, webhooks, order history, refunds
       price/                # shared amount/currency schema
       health/               # health endpoint
     services/               # mail and image service integrations
@@ -164,14 +164,31 @@ Cart routes require a valid access token. Services check product/variant availab
 
 ### Payment
 
-Payment model/controller/service files exist, but a complete cart-to-order/checkout flow, provider verification, stock reservation/decrement, and refund lifecycle are not considered complete. Do not present checkout as available until these are implemented and tested.
+The payment router is mounted at `/payments` under `/api/v1`:
+
+- `POST /payments/checkout` — authenticated; requires an `Idempotency-Key` header and delivery address; reprices the current cart, creates a Razorpay order, snapshots the order/address, and reserves stock.
+- `POST /payments/verify` — authenticated; validates the Razorpay checkout signature, fetches payment status, captures authorized payments, and settles captured payments.
+- `POST /payments/webhook` — provider-signed raw-body callback for authorized/captured/failed attempts and refund events.
+- `GET /payments` — authenticated user's paginated order history.
+- `GET /payments/:paymentId` — authenticated user's order details.
+- `GET /payments/admin/refunds` — admin refund-reconciliation queue.
+- `POST /payments/:paymentId/refund` — admin-only full refund request/retry for a captured payment.
+
+Checkout recalculates prices using current product/variant data and accepts INR only. It stores immutable item/seller/price and shipping-address snapshots. Inventory is reserved transactionally for 15 minutes, then decremented after verified capture or released on expiry. A capture arriving after a reservation was released triggers a full refund. Repeated checkout requests using the same idempotency key reuse the existing pending checkout; provider verification and webhook processing are safe to repeat.
+
+Configure `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET`. Configure Razorpay webhook events `payment.authorized`, `payment.captured`, `payment.failed`, `order.paid`, `refund.processed`, and `refund.failed` to call `/api/v1/payments/webhook`. Razorpay does not expose an order-expired webhook for this flow; the backend timer expires local reservations. Failed payment attempts release inventory and require a new provider order. The JSON parser retains the exact raw body for webhook HMAC validation. MongoDB replica-set/sharded transactions are required.
+
+Not implemented: frontend checkout UI, tax/shipping charges, seller split transfers/payouts, fulfillment/tracking, returns, and partial refunds. Refund completion does not restock inventory. Ambiguous refund requests stay in the admin reconciliation queue and are not blindly resubmitted; only a provider-confirmed failure can be retried.
 
 ## 6. Authentication and trust boundaries
 
 - Browser authentication uses same-origin HTTP-only cookies; the frontend must not persist JWTs in local storage or session storage.
+- Checkout and payment verification require customer authentication. The webhook uses Razorpay's signature, not a session token.
 - Server-side ownership is authoritative. Never accept a seller ID from request data for seller operations; derive it from the verified JWT.
 - Public catalog endpoints must select only storefront-safe fields and must not return password, OTP, refresh-token hash, or provider identifiers.
 - Customer-supplied price values are not authoritative. Recalculate and validate prices from database records before checkout.
+- Fulfill only after validating the checkout signature and Razorpay-reported order, amount, currency, and captured status. A client success callback by itself is not payment confirmation.
+- Reserve stock atomically at checkout, decrement only after capture, and release on reservation expiry.
 - Validate all ObjectIds, enums, quantities, sort choices, and search input at the API boundary.
 - User-facing errors should not expose stack traces, secrets, or raw database internals.
 
@@ -191,16 +208,18 @@ Set backend environment variables in `backend/.env` using `backend/.env.example`
 - `FRONTEND_URL`
 - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`
 - `IMAGE_KIT_PUBLIC_KEY`, `IMAGE_KIT_PRIVATE_KEY`, `IMAGE_KIT_URL_ENDPOINT`
+- `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
 - Optional Redis settings: `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`
 
 Secrets must remain outside source control. Production JWT secrets must be high entropy and distinct.
 
 ## 9. Known gaps and architectural direction
 
-- There is no implemented end-to-end checkout/order lifecycle; payment work must include authoritative repricing and atomic inventory handling.
+- Backend Razorpay checkout/order snapshots, verification, signed webhooks, transactional inventory reservation/settlement, expiry, history, and admin full refunds are implemented; live-account integration still needs verification.
+- The customer-facing frontend checkout, seller payouts, tax/shipping calculations, fulfillment/tracking, partial refunds, and returns are not implemented.
 - The browser does not yet have account registration, seller dashboards, category admin, or completed payment UI.
 - The requested Vite/React frontend, its package manifest, Redux store/slices, routes, reusable UI, and centralized design tokens are not yet implemented.
 - Current backend static serving points to missing `public/dist` output; frontend build and backend deployment wiring must be completed together.
 - Google is an allowed user provider in the schema, but a complete OAuth sign-in flow is not exposed as an API in the current route set.
 - Database availability and seed data are deployment prerequisites for storefront product results.
-- Add automated service/API tests before expanding checkout or inventory-concurrency behavior.
+- Add automated service/API tests for payment retries, replayed callbacks, late captures, refund reconciliation, and inventory concurrency.

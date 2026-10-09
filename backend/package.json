@@ -31,6 +31,7 @@
     "mongoose": "^9.11.0",
     "morgan": "^1.12.1",
     "nodemailer": "^10.0.16",
+    "razorpay": "^2.9.8",
     "winston": "^3.19.0",
     "zod": "^4.6.5"
   },
