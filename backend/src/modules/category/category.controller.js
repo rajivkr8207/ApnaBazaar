@@ -5,6 +5,7 @@ import {
   createCategory,
   deactivateCategory,
   deleteCategory,
+  getPublicCategories,
   updateCategory,
 } from './category.service.js';
 
@@ -31,4 +32,9 @@ export const activateCategoryController = asyncHandler(async (req, res) => {
 export const deactivateCategoryController = asyncHandler(async (req, res) => {
   const category = await deactivateCategory(req.params.id);
   return res.status(200).json(new ApiResponse(200, category, 'Category deactivated successfully'));
+});
+
+export const getPublicCategoriesController = asyncHandler(async (req, res) => {
+  const categories = await getPublicCategories();
+  return res.status(200).json(new ApiResponse(200, categories, 'Categories fetched successfully'));
 });

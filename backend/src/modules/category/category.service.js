@@ -127,3 +127,9 @@ const setCategoryActive = async (id, isActive) => {
 export const activateCategory = (id) => setCategoryActive(id, true);
 
 export const deactivateCategory = (id) => setCategoryActive(id, false);
+
+export const getPublicCategories = () =>
+  Category.find({ isActive: true })
+    .select('name slug description image parentCategory')
+    .sort({ name: 1 })
+    .lean();

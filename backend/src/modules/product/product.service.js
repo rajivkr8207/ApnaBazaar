@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import Product from './product.model.js';
 import Category from '../category/category.model.js';
+import ProductVariant from '../productVariant/productVariant.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 
 const slugify = (value) =>
@@ -230,6 +232,85 @@ export const getAllProducts = async ({
 
   return {
     items,
+    page: safePage,
+    limit: safeLimit,
+    totalItems,
+    totalPages,
+    hasNextPage: safePage < totalPages,
+    hasPrevPage: safePage > 1,
+  };
+};
+
+export const getCatalogProducts = async ({
+  page = 1,
+  limit = 12,
+  category,
+  search,
+  sort = 'newest',
+}) => {
+  const query = {
+    isActive: true,
+    status: 'published',
+  };
+
+  if (category) {
+    if (!mongoose.isValidObjectId(category)) {
+      throw new ApiError(400, 'A valid category ID is required');
+    }
+    query.category = category;
+  }
+
+  if (search) {
+    const escapedSearch = String(search).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    query.$or = [
+      { name: { $regex: escapedSearch, $options: 'i' } },
+      { brand: { $regex: escapedSearch, $options: 'i' } },
+      { description: { $regex: escapedSearch, $options: 'i' } },
+    ];
+  }
+
+  const sortOptions = {
+    newest: { createdAt: -1, _id: -1 },
+    'price-asc': { price: 1, _id: 1 },
+    'price-desc': { price: -1, _id: -1 },
+  };
+  const safePage = Math.max(Number(page) || 1, 1);
+  const safeLimit = Math.min(Math.max(Number(limit) || 12, 1), 48);
+  const [items, totalItems] = await Promise.all([
+    Product.find(query)
+      .select('name slug description price currency images brand category seller')
+      .populate('category', 'name slug')
+      .populate('seller', 'fullName username')
+      .sort(sortOptions[sort] || sortOptions.newest)
+      .skip((safePage - 1) * safeLimit)
+      .limit(safeLimit)
+      .lean({ flattenMaps: true }),
+    Product.countDocuments(query),
+  ]);
+
+  const productIds = items.map((item) => item._id);
+  const variants = productIds.length
+    ? await ProductVariant.find({ product: { $in: productIds }, isActive: true })
+        .select('product sku attributes images price currency')
+      .lean({ flattenMaps: true })
+    : [];
+  const variantsByProduct = new Map();
+
+  for (const variant of variants) {
+    const productId = variant.product.toString();
+    const productVariants = variantsByProduct.get(productId) || [];
+    productVariants.push(variant);
+    variantsByProduct.set(productId, productVariants);
+  }
+
+  const products = items.map((item) => ({
+    ...item,
+    variants: variantsByProduct.get(item._id.toString()) || [],
+  }));
+  const totalPages = Math.ceil(totalItems / safeLimit) || 1;
+
+  return {
+    items: products,
     page: safePage,
     limit: safeLimit,
     totalItems,

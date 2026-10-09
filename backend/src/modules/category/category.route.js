@@ -5,6 +5,7 @@ import {
   createCategoryController,
   deactivateCategoryController,
   deleteCategoryController,
+  getPublicCategoriesController,
   updateCategoryController,
 } from './category.controller.js';
 import {
@@ -16,6 +17,7 @@ import {
 const categoryRouter = Router();
 const adminOnly = [verifyJWT, verifyAdmin];
 
+categoryRouter.get('/', getPublicCategoriesController);
 categoryRouter.post('/', adminOnly, createCategoryValidation, createCategoryController);
 categoryRouter.patch('/:id', adminOnly, updateCategoryValidation, updateCategoryController);
 categoryRouter.delete('/:id', adminOnly, categoryIdParamValidation, deleteCategoryController);

@@ -29,7 +29,17 @@ export const Middleware = (app) => {
   app.use(cookieParser());
   app.use(cors(corsOption));
   app.use(morgan("dev"))
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          imgSrc: ["'self'", 'data:', 'https://images.unsplash.com'],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        },
+      },
+    }),
+  );
   app.use(compression());
   app.use(express.static('public/dist'));
   app.use(hpp());

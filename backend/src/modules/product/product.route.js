@@ -5,6 +5,7 @@ import {
   createProductController,
   deactivateProductController,
   deleteProductController,
+  getCatalogProductsController,
   getAllProductsController,
   getProductByIdController,
   updateProductController,
@@ -19,6 +20,7 @@ const productRouter = Router();
 const sellerOnly = [verifyJWT, verifySeller];
 
 productRouter.post('/', sellerOnly, createProductValidation, createProductController);
+productRouter.get('/catalog', getCatalogProductsController);
 productRouter.get('/', sellerOnly, getAllProductsController);
 productRouter.get('/:id', sellerOnly, productIdParamValidation, getProductByIdController);
 productRouter.patch(

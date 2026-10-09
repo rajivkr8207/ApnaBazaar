@@ -4,6 +4,7 @@ import {
   createProduct,
   deleteProduct,
   getAllProducts,
+  getCatalogProducts,
   getProductById,
   setProductActiveStatus,
   updateProduct,
@@ -50,6 +51,18 @@ export const getAllProductsController = asyncHandler(async (req, res) => {
   });
 
   return res.status(200).json(new ApiResponse(200, result, 'Products fetched successfully'));
+});
+
+export const getCatalogProductsController = asyncHandler(async (req, res) => {
+  const result = await getCatalogProducts({
+    page: req.query.page,
+    limit: req.query.limit,
+    category: req.query.category,
+    search: req.query.search,
+    sort: req.query.sort,
+  });
+
+  return res.status(200).json(new ApiResponse(200, result, 'Catalog products fetched successfully'));
 });
 
 export const getProductByIdController = asyncHandler(async (req, res) => {
