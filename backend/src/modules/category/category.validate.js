@@ -44,6 +44,11 @@ const categoryMetadataValidation = [
     .bail()
     .isLength({ max: 2048 })
     .withMessage('Category image cannot exceed 2048 characters'),
+
+  body('parentCategory')
+    .optional({ nullable: true })
+    .isMongoId()
+    .withMessage('Parent category must be a valid Mongo ID'),
 ];
 
 export const createCategoryValidation = [
@@ -65,7 +70,7 @@ export const updateCategoryValidation = [
   categoryNameValidation,
   ...categoryMetadataValidation,
   body().custom((_, { req }) => {
-    const allowedFields = ['name', 'slug', 'description', 'image'];
+    const allowedFields = ['name', 'slug', 'description', 'image', 'parentCategory'];
     if (
       !req.body ||
       !allowedFields.some((field) => Object.prototype.hasOwnProperty.call(req.body, field))

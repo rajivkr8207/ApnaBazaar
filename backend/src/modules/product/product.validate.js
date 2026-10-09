@@ -21,6 +21,24 @@ export const createProductValidation = [
 
   body('price').isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
 
+  body('sku')
+    .optional()
+    .isString()
+    .withMessage('SKU must be a string')
+    .bail()
+    .trim()
+    .isLength({ min: 3, max: 50 })
+    .withMessage('SKU must be between 3 and 50 characters'),
+
+  body('brand')
+    .optional()
+    .isString()
+    .withMessage('Brand must be a string')
+    .bail()
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('Brand cannot exceed 80 characters'),
+
   body('slug')
     .optional()
     .isString()
@@ -40,6 +58,16 @@ export const createProductValidation = [
     .isLength({ max: 2000 })
     .withMessage('Description cannot exceed 2000 characters'),
 
+  body('attributes')
+    .optional()
+    .isObject()
+    .withMessage('Attributes must be an object'),
+
+  body('seo')
+    .optional()
+    .isObject()
+    .withMessage('SEO metadata must be an object'),
+
   body('images')
     .optional()
     .isArray({ max: 10 })
@@ -47,6 +75,11 @@ export const createProductValidation = [
     .bail()
     .custom((images) => images.every((image) => typeof image === 'string'))
     .withMessage('Each image must be a string URL or path'),
+
+  body('status')
+    .optional()
+    .isIn(['draft', 'published', 'pending_review', 'rejected'])
+    .withMessage('Status must be draft, published, pending_review, or rejected'),
 
   body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
 
@@ -71,6 +104,24 @@ export const updateProductValidation = [
 
   body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
 
+  body('sku')
+    .optional()
+    .isString()
+    .withMessage('SKU must be a string')
+    .bail()
+    .trim()
+    .isLength({ min: 3, max: 50 })
+    .withMessage('SKU must be between 3 and 50 characters'),
+
+  body('brand')
+    .optional()
+    .isString()
+    .withMessage('Brand must be a string')
+    .bail()
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('Brand cannot exceed 80 characters'),
+
   body('slug')
     .optional()
     .isString()
@@ -90,6 +141,16 @@ export const updateProductValidation = [
     .isLength({ max: 2000 })
     .withMessage('Description cannot exceed 2000 characters'),
 
+  body('attributes')
+    .optional()
+    .isObject()
+    .withMessage('Attributes must be an object'),
+
+  body('seo')
+    .optional()
+    .isObject()
+    .withMessage('SEO metadata must be an object'),
+
   body('images')
     .optional()
     .isArray({ max: 10 })
@@ -98,8 +159,25 @@ export const updateProductValidation = [
     .custom((images) => images.every((image) => typeof image === 'string'))
     .withMessage('Each image must be a string URL or path'),
 
+  body('status')
+    .optional()
+    .isIn(['draft', 'published', 'pending_review', 'rejected'])
+    .withMessage('Status must be draft, published, pending_review, or rejected'),
+
   body().custom((_, { req }) => {
-    const allowedFields = ['name', 'category', 'price', 'slug', 'description', 'images'];
+    const allowedFields = [
+      'name',
+      'category',
+      'price',
+      'sku',
+      'brand',
+      'slug',
+      'description',
+      'attributes',
+      'status',
+      'seo',
+      'images',
+    ];
     if (
       !req.body ||
       !allowedFields.some((field) => Object.prototype.hasOwnProperty.call(req.body, field))

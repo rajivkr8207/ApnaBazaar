@@ -28,7 +28,7 @@ export const Middleware = (app) => {
   app.use(express.urlencoded({ extended: true, limit: '16kb' }));
   app.use(cookieParser());
   app.use(cors(corsOption));
-  app.use(morgan(Config.env === 'production' ? 'combined' : 'dev'));
+  app.use(morgan("dev"))
   app.use(helmet());
   app.use(compression());
   app.use(express.static('public/dist'));

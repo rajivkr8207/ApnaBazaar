@@ -49,7 +49,19 @@ const buildUniqueSlug = async (inputName, fallbackSlug, excludeProductId = null)
 };
 
 export const createProduct = async (payload, sellerId) => {
-  const { name, category, slug, description = '', price, images = [] } = payload;
+  const {
+    name,
+    category,
+    slug,
+    description = '',
+    price,
+    images = [],
+    sku,
+    brand,
+    attributes,
+    status,
+    seo,
+  } = payload;
 
   if (!name || !String(name).trim()) {
     throw new ApiError(400, 'Product name is required');
@@ -74,6 +86,11 @@ export const createProduct = async (payload, sellerId) => {
     slug: uniqueSlug,
     description: String(description).trim(),
     price: Number(price),
+    sku: sku ? String(sku).trim().toUpperCase() : undefined,
+    brand: brand ? String(brand).trim() : null,
+    attributes: attributes || {},
+    status: status || 'draft',
+    seo: seo || {},
     images,
     isActive: true,
   });
@@ -88,7 +105,8 @@ export const updateProduct = async (productId, sellerId, payload) => {
     throw new ApiError(404, 'Product not found or you do not own this product');
   }
 
-  const { name, category, slug, description, price, images } = payload;
+  const { name, category, slug, description, price, images, sku, brand, attributes, status, seo } =
+    payload;
 
   if (name !== undefined) {
     if (!String(name).trim()) {
@@ -119,6 +137,26 @@ export const updateProduct = async (productId, sellerId, payload) => {
       throw new ApiError(400, 'Price cannot be negative');
     }
     product.price = Number(price);
+  }
+
+  if (sku !== undefined) {
+    product.sku = sku ? String(sku).trim().toUpperCase() : null;
+  }
+
+  if (brand !== undefined) {
+    product.brand = brand ? String(brand).trim() : null;
+  }
+
+  if (attributes !== undefined) {
+    product.attributes = attributes || {};
+  }
+
+  if (status !== undefined) {
+    product.status = status;
+  }
+
+  if (seo !== undefined) {
+    product.seo = seo || {};
   }
 
   if (images !== undefined) {

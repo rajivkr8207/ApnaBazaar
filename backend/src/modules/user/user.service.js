@@ -12,11 +12,15 @@ export const registerUser = async ({
   mobile,
   image,
   role,
+  provider = 'local',
+  googleId = null,
 }) => {
+  const safeRole = role === 'admin' ? 'customer' : role || 'customer';
   const existingUser = await User.findOne({ $or: [{ email }, { username }, { mobile }] });
   if (existingUser) {
-    return new ApiError(409, 'User with this email, username, or mobile already exists');
+    throw new ApiError(409, 'User with this email, username, or mobile already exists');
   }
+
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
   const user = await User.create({
@@ -24,16 +28,23 @@ export const registerUser = async ({
     username,
     email,
     password,
-    mobile,
-    image,
-    role,
+    mobile: mobile || null,
+    avatar: image,
+    role: safeRole,
+    provider,
+    googleId,
     otp,
     otpExpire,
+    isVerified: provider !== 'local',
   });
-  const mail = await new MailService().SendRegisterMail(email, otp, fullName);
-  if (!mail) {
-    throw new ApiError(500, 'Failed to send verification email');
+
+  if (provider === 'local') {
+    const mail = await new MailService().SendRegisterMail(email, otp, fullName);
+    if (!mail) {
+      throw new ApiError(500, 'Failed to send verification email');
+    }
   }
+
   return user;
 };
 
@@ -50,15 +61,19 @@ export const loginUser = async ({ identifier, password }) => {
   if (!user.isActive) {
     throw new ApiError(403, 'Account is not active. Please contact support.');
   }
+  if (user.isBlocked) {
+    throw new ApiError(403, 'Account is blocked. Please contact support.');
+  }
   const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
     throw new ApiError(401, 'Invalid password');
   }
-  user.lastLoginAt = new Date();
-  await user.save();
-  user.password = undefined;
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
+  user.setRefreshTokenHash(refreshToken);
+  user.lastLoginAt = new Date();
+  await user.save();
+
   return { user, accessToken, refreshToken };
 };
 
@@ -67,6 +82,10 @@ export const logoutUser = async (id) => {
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
+
+  user.refreshTokenHash = null;
+  user.refreshTokenVersion = (user.refreshTokenVersion || 0) + 1;
+  await user.save();
   return;
 };
 
@@ -75,11 +94,27 @@ export const refreshAccessToken = async (incomingRefreshToken) => {
     throw new ApiError(401, 'Refresh token is required');
   }
 
-  const decoded = jwt.verify(incomingRefreshToken, Config.jwt_refresh_secret);
-  const user = await User.findById(decoded.id);
-  if (!user) throw new ApiError(404, 'User not found');
+  let decoded;
+  try {
+    decoded = jwt.verify(incomingRefreshToken, Config.jwt_refresh_secret);
+  } catch (error) {
+    throw new ApiError(401, 'Invalid or expired refresh token');
+  }
+
+  const user = await User.findById(decoded.id).select('+refreshTokenHash +refreshTokenVersion');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (!user.compareRefreshToken(incomingRefreshToken)) {
+    throw new ApiError(401, 'Refresh token revoked or invalid');
+  }
+
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
+  user.setRefreshTokenHash(refreshToken);
+  await user.save();
+
   return { accessToken, refreshToken };
 };
 

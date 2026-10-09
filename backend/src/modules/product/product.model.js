@@ -29,7 +29,23 @@ const productSchema = new mongoose.Schema(
       trim: true,
       unique: true,
       lowercase: true,
-      index: true,
+      match: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Product slug must be lowercase letters, numbers, and hyphens only'],
+    },
+
+    sku: {
+      type: String,
+      trim: true,
+      unique: true,
+      sparse: true,
+      uppercase: true,
+      maxlength: 50,
+    },
+
+    brand: {
+      type: String,
+      trim: true,
+      default: null,
+      maxlength: 80,
     },
 
     description: {
@@ -43,6 +59,43 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+      set: (value) => (value === null || value === undefined ? 0 : Number(value)),
+    },
+
+    currency: {
+      type: String,
+      enum: ['USD', 'EUR', 'GBP', 'JPY', 'INR'],
+      default: 'INR',
+    },
+
+    attributes: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'pending_review', 'rejected'],
+      default: 'draft',
+      index: true,
+    },
+
+    seo: {
+      metaTitle: {
+        type: String,
+        default: null,
+        maxlength: 150,
+      },
+      metaDescription: {
+        type: String,
+        default: null,
+        maxlength: 200,
+      },
+      keywords: {
+        type: [String],
+        default: [],
+      },
     },
 
     images: {
@@ -64,6 +117,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+productSchema.index({ seller: 1, category: 1, isActive: 1 });
 productSchema.index({ seller: 1, createdAt: -1 });
 
 const Product = mongoose.model('Product', productSchema);
