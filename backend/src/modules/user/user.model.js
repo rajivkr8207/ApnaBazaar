@@ -73,8 +73,6 @@ const userSchema = new mongoose.Schema(
     },
     googleId: {
       type: String,
-      unique: true,
-      sparse: true,
       trim: true,
       default: null,
     },
@@ -107,43 +105,18 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    refreshTokenHash: {
-      type: String,
-      select: false,
-      default: null,
-    },
-    refreshTokenVersion: {
-      type: Number,
-      default: 0,
-      select: false,
-    },
   },
   {
     timestamps: true,
   },
 );
 
-userSchema.pre('validate', function (next) {
-  if (this.email) {
-    this.email = normalizeEmail(this.email);
-  }
 
-  if (this.username) {
-    this.username = normalizeUsername(this.username);
-  }
-
-  if (this.provider === 'google' && !this.password) {
-    this.password = undefined;
-  }
-
-  next();
-});
-
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   if (this.isModified('password') && this.password) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-  next();
+  return
 });
 
 userSchema.methods.comparePassword = async function comparePassword(password) {

@@ -23,6 +23,7 @@ const cookieOptions = {
 // POST /api/v1/users/register
 // ─────────────────────────────────────────────
 export const register = asyncHandler(async (req, res) => {
+  const { role } = req.query
   const { fullName, username, email, password, mobile } = req.body;
   const image = req.file ? req.file.path : null;
   const user = await registerUser({
@@ -32,7 +33,7 @@ export const register = asyncHandler(async (req, res) => {
     password,
     mobile,
     image,
-    role: 'customer',
+    role: role || "customer",
   });
   return res.status(201).json(new ApiResponse(201, { user }, 'User registered successfully'));
 });
