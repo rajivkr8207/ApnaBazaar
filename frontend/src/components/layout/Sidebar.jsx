@@ -39,10 +39,9 @@ const Sidebar = () => {
 
   const navLinks = [
     { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
-    { to: '/profile',   icon: '👤', label: 'Profile'   },
-    { to: '/orders',    icon: '📦', label: 'Orders'    },
     { to: '/products',  icon: '🛍️', label: 'Products'  },
-    { to: '/settings',  icon: '⚙️', label: 'Settings'  },
+    { to: '/categories', icon: '🏷️', label: 'Categories' },
+    { to: '/profile',   icon: '👤', label: 'Profile'   },
   ]
 
   return (

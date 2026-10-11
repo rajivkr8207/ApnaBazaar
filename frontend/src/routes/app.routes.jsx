@@ -6,11 +6,15 @@ import { selectIsAuthenticated, selectIsInitialized, selectUser } from '../featu
 import useAuth from '../features/auth/hooks/UseAuth'
 import LoadingScreen from '../components/common/LoadingScreen'
 
-// ── Pages ─────────────────────────────────────────────────────────────────────
+// ── Pages & Layout ────────────────────────────────────────────────────────────
+import AppLayout from '../components/layout/AppLayout'
 import Login from '../features/auth/pages/Login'
 import Register from '../features/auth/pages/Register'
 import VerifyOtp from '../features/auth/pages/VerifyOtp'
 import Profile from '../features/auth/pages/Profile'
+import ProductsPage from '../features/product/pages/ProductsPage'
+import ProductDetailPage from '../features/product/pages/ProductDetailPage'
+import CategoryList from '../features/category/pages/CategoryList'
 
 // ── Dashboard Component ───────────────────────────────────────────────────────
 const Dashboard = () => {
@@ -72,6 +76,39 @@ const Dashboard = () => {
               </span>
             </div>
           </div>
+
+          {/* Seller Action Shortcuts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-800">
+            <Link
+              to="/products"
+              className="p-5 rounded-2xl bg-gradient-to-br from-violet-600/10 to-indigo-600/10 border border-violet-500/25 hover:border-violet-500/50 transition-all group flex items-center justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2 text-violet-400 font-bold text-base">
+                  <span>🛍️</span> Manage Products
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Add products, manage product variants & live stock
+                </p>
+              </div>
+              <span className="text-violet-400 text-lg group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
+
+            <Link
+              to="/categories"
+              className="p-5 rounded-2xl bg-gradient-to-br from-cyan-600/10 to-blue-600/10 border border-cyan-500/25 hover:border-cyan-500/50 transition-all group flex items-center justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2 text-cyan-400 font-bold text-base">
+                  <span>🏷️</span> Manage Categories
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Create store categories and organize collections
+                </p>
+              </div>
+              <span className="text-cyan-400 text-lg group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -90,6 +127,7 @@ const NotFound = () => (
     <h1>404 – Page Not Found</h1>
   </div>
 )
+
 
 // ── Root Index Redirect ───────────────────────────────────────────────────────
 const RootRedirect = () => {
@@ -121,8 +159,13 @@ const AppRouter = () => {
 
         {/* ── Protected routes (must be logged in) ──────────────────────── */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/:id" element={<ProductDetailPage />} />
+            <Route path="/categories" element={<CategoryList />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
         </Route>
 
         {/* ── Admin-only routes ──────────────────────────────────────────── */}

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { verifyAdmin, verifyJWT } from '../../middlewares/auth.middleware.js';
+import { verifyAdmin, verifyAdminOrSeller, verifyJWT } from '../../middlewares/auth.middleware.js';
 import {
   activateCategoryController,
   createCategoryController,
@@ -16,10 +16,11 @@ import {
 
 const categoryRouter = Router();
 const adminOnly = [verifyJWT, verifyAdmin];
+const adminOrSeller = [verifyJWT, verifyAdminOrSeller];
 
 categoryRouter.get('/', getPublicCategoriesController);
-categoryRouter.post('/', adminOnly, createCategoryValidation, createCategoryController);
-categoryRouter.patch('/:id', adminOnly, updateCategoryValidation, updateCategoryController);
+categoryRouter.post('/', adminOrSeller, createCategoryValidation, createCategoryController);
+categoryRouter.patch('/:id', adminOrSeller, updateCategoryValidation, updateCategoryController);
 categoryRouter.delete('/:id', adminOnly, categoryIdParamValidation, deleteCategoryController);
 categoryRouter.patch(
   '/:id/activate',

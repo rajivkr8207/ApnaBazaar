@@ -26,10 +26,18 @@ export const verifyAdmin = asyncHandler(async (req, res, next) => {
 });
 
 export const verifySeller = asyncHandler(async (req, res, next) => {
-  if (req.user && req.user.role === 'seller') {
+  if (req.user && ['seller', 'admin'].includes(req.user.role)) {
     next();
   } else {
     throw new ApiError(403, 'Forbidden: Seller access required');
+  }
+});
+
+export const verifyAdminOrSeller = asyncHandler(async (req, res, next) => {
+  if (req.user && ['admin', 'seller'].includes(req.user.role)) {
+    next();
+  } else {
+    throw new ApiError(403, 'Forbidden: Admin or Seller access required');
   }
 });
 
