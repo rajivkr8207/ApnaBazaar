@@ -1,18 +1,18 @@
-import { useState }    from 'react'
-import { Link }        from 'react-router'
-import useAuth         from '../hooks/UseAuth'
-import InputField      from '../../../components/common/Inputfield'
-import Button          from '../../../components/common/Button'
+import { useState } from 'react'
+import { Link } from 'react-router'
+import useAuth from '../hooks/UseAuth'
+import InputField from '../../../components/common/Inputfield'
+import Button from '../../../components/common/Button'
 
 // ─── Auth Card Wrapper ────────────────────────────────────────────────────────
 const AuthCard = ({ children }) => (
   <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-slate-950"
-       style={{
-         background:
-           'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,58,237,0.18) 0%, transparent 70%),' +
-           'radial-gradient(ellipse 60% 40% at 100% 90%, rgba(6,182,212,0.1) 0%, transparent 60%),' +
-           '#0f172a',
-       }}>
+    style={{
+      background:
+        'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,58,237,0.18) 0%, transparent 70%),' +
+        'radial-gradient(ellipse 60% 40% at 100% 90%, rgba(6,182,212,0.1) 0%, transparent 60%),' +
+        '#0f172a',
+    }}>
     <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl animate-fade-up">
       {children}
     </div>
@@ -36,7 +36,7 @@ const Logo = () => (
 // ─── Login Page ───────────────────────────────────────────────────────────────
 const Login = () => {
   const { handleLogin, loading, error, dismissError } = useAuth()
-  const [form, setForm] = useState({ email: '', password: '' })
+  const [form, setForm] = useState({ identifier: '', password: '' })
 
   const onChange = (e) => {
     dismissError()
@@ -69,15 +69,15 @@ const Login = () => {
 
       <form onSubmit={onSubmit} id="login-form" className="flex flex-col gap-4">
         <InputField
-          id="login-email"
-          name="email"
-          label="Email address"
-          type="email"
-          placeholder="you@example.com"
-          value={form.email}
+          id="login-identifier"
+          name="identifier"
+          label="Email address/ username"
+          type="text"
+          placeholder="you@example.com or @username"
+          value={form.identifier}
           onChange={onChange}
           required
-          autoComplete="email"
+          autoComplete="identifier"
         />
 
         <InputField

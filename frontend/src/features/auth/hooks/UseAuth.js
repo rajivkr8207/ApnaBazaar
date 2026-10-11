@@ -5,6 +5,7 @@ import {
   clearError,
   selectUser,
   selectIsAuthenticated,
+  selectIsInitialized,
   selectAuthLoading,
   selectAuthError,
 } from '../auth.slice'
@@ -17,6 +18,7 @@ const useAuth = () => {
   // Selectors
   const user = useSelector(selectUser)
   const isAuthenticated = useSelector(selectIsAuthenticated)
+  const isInitialized = useSelector(selectIsInitialized)
   const loading = useSelector(selectAuthLoading)
   const error = useSelector(selectAuthError)
 
@@ -35,7 +37,9 @@ const useAuth = () => {
   const handleLogin = async (credentials) => {
     const result = await dispatch(loginUser(credentials))
     if (loginUser.fulfilled.match(result)) {
-      toast.success(`Welcome back, ${result.payload.user?.name}!`)
+      const u = result.payload?.data?.user || result.payload?.user
+      const displayName = u?.fullName || u?.name || u?.username || 'User'
+      toast.success(`Welcome back, ${displayName}!`)
       navigate('/dashboard')
     } else {
       toast.error(result.payload || 'Login failed')
@@ -80,6 +84,7 @@ const useAuth = () => {
     // State
     user,
     isAuthenticated,
+    isInitialized,
     loading,
     error,
     handleRegister,

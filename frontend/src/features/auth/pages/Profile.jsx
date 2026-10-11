@@ -19,15 +19,16 @@ const StatCard = ({ icon, label, value }) => (
 // ─── Avatar ───────────────────────────────────────────────────────────────────
 const Avatar = ({ user, size = 'lg' }) => {
   const sizeClass = size === 'lg' ? 'w-24 h-24 text-3xl' : 'w-10 h-10 text-base'
-  const initials = user?.name
-    ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  const displayName = user?.fullName || user?.name || ''
+  const initials = displayName
+    ? displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '?'
 
   if (user?.avatar) {
     return (
       <img
         src={user.avatar}
-        alt={user.name}
+        alt={displayName}
         className={`${sizeClass} rounded-full object-cover border-2 border-violet-500/40`}
       />
     )
@@ -58,7 +59,7 @@ const Profile = () => {
   // Sync form when user data arrives
   useEffect(() => {
     if (user) {
-      setForm({ name: user.name || '', email: user.email || '' })
+      setForm({ name: user.fullName || user.name || '', email: user.email || '' })
     }
   }, [user])
 
@@ -132,7 +133,7 @@ const Profile = () => {
 
             {/* Info */}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-xl font-bold text-slate-100">{user?.name || '—'}</h1>
+              <h1 className="text-xl font-bold text-slate-100">{user?.fullName || user?.name || '—'}</h1>
               <p className="text-sm text-slate-500 mb-2">{user?.email}</p>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
                                bg-violet-500/15 text-violet-300 border border-violet-500/25">
@@ -240,7 +241,8 @@ const Profile = () => {
             </h2>
             <div className="space-y-4">
               {[
-                { label: 'Full Name',  value: user?.name  },
+                { label: 'Full Name',  value: user?.fullName || user?.name  },
+                { label: 'Username',   value: user?.username ? `@${user.username}` : null },
                 { label: 'Email',      value: user?.email },
                 { label: 'Role',       value: ROLE_LABELS[user?.role] || user?.role },
                 { label: 'Account ID', value: user?._id   },

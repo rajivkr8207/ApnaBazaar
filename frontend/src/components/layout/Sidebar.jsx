@@ -81,10 +81,10 @@ const Sidebar = () => {
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/50 mb-1">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-cyan-400
                             flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-              {user.name?.charAt(0).toUpperCase()}
+              {(user.fullName || user.name || 'U').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-200 truncate">{user.name}</p>
+              <p className="text-xs font-semibold text-slate-200 truncate">{user.fullName || user.name || 'User'}</p>
               <p className="text-xs text-slate-500 truncate">{ROLE_LABELS[user.role] || user.role}</p>
             </div>
           </div>

@@ -21,13 +21,6 @@ export const api = axios.create({
 // Attach the token from Redux state on every request
 api.interceptors.request.use(
   (config) => {
-    const token = store?.getState()?.auth?.token
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    if (import.meta.env.DEV) {
-      console.log(`→ ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
-    }
     return config
   },
   (error) => Promise.reject(error)
@@ -37,9 +30,6 @@ api.interceptors.request.use(
 // Automatically logout on 401 Unauthorized
 api.interceptors.response.use(
   (response) => {
-    if (import.meta.env.DEV) {
-      console.log(`← ${response.status} ${response.config.url}`)
-    }
     return response
   },
   (error) => {

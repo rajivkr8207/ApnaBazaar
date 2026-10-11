@@ -115,7 +115,6 @@ export const getProfile = asyncHandler(async (req, res) => {
   const user = await getUserById(req.user.id);
   return res.status(200).json(new ApiResponse(200, user, 'Profile fetched successfully'));
 });
-
 // ─────────────────────────────────────────────
 // PATCH /api/v1/users/profile  [Protected]
 // ─────────────────────────────────────────────

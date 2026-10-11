@@ -112,8 +112,8 @@ const Register = () => {
         <InputField
           id="reg-email"
           name="email"
-          label="Username"
-          placeholder="@email"
+          label="Email"
+          placeholder="[EMAIL_ADDRESS]"
           value={form.email}
           onChange={onChange}
           required
