@@ -54,24 +54,22 @@ const ensureValidParentCategory = async (parentCategoryId, currentCategoryId = n
 
 export const createCategory = async ({ name, slug, description, image, parentCategory }) => {
   const categorySlug = slug || slugify(name);
+  console.log(categorySlug)
   if (!categorySlug) {
     throw new ApiError(400, 'A valid category slug could not be generated from the name');
   }
 
-  const resolvedParentCategory = await ensureValidParentCategory(parentCategory);
+  // const resolvedParentCategory = await ensureValidParentCategory(parentCategory);
+  // console.log(resolvedParentCategory)
+  return await Category.create({
+    name,
+    slug: categorySlug,
+    description,
+    image,
+    parentCategory: null,
+    isActive: true,
+  });
 
-  try {
-    return await Category.create({
-      name,
-      slug: categorySlug,
-      description,
-      image,
-      parentCategory: resolvedParentCategory,
-      isActive: true,
-    });
-  } catch (error) {
-    throwIfDuplicateSlug(error);
-  }
 };
 
 export const updateCategory = async (id, { name, slug, description, image, parentCategory }) => {

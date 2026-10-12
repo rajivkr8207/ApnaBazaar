@@ -74,26 +74,6 @@ const hasCircularHierarchy = async function (model, categoryId, currentCategoryI
   return false;
 };
 
-categorySchema.pre('validate', async function (next) {
-  if (!this.parentCategory) {
-    return next();
-  }
-
-  if (this._id && this.parentCategory.toString() === this._id.toString()) {
-    return next(new Error('A category cannot be its own parent'));
-  }
-
-  try {
-    const circular = await hasCircularHierarchy(this.constructor, this.parentCategory, this._id);
-    if (circular) {
-      return next(new Error('Circular category hierarchy detected'));
-    }
-  } catch (error) {
-    return next(error);
-  }
-
-  next();
-});
 
 categorySchema.index({ name: 1, parentCategory: 1 }, { unique: false });
 

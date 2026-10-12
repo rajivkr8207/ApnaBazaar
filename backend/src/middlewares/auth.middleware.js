@@ -11,7 +11,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   try {
     const decodedToken = jwt.verify(token, Config.jwt_access_secret);
     req.user = decodedToken;
-    next();
+    next()
   } catch (error) {
     throw new ApiError(401, 'Invalid token', error);
   }
@@ -26,7 +26,7 @@ export const verifyAdmin = asyncHandler(async (req, res, next) => {
 });
 
 export const verifySeller = asyncHandler(async (req, res, next) => {
-  if (req.user && ['seller', 'admin'].includes(req.user.role)) {
+  if (req.user && ['seller'].includes(req.user.role)) {
     next();
   } else {
     throw new ApiError(403, 'Forbidden: Seller access required');

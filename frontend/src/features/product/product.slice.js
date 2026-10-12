@@ -49,9 +49,14 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, { payload }) => {
         state.loading = false
-        const data = payload.data || payload
-        state.products = data.products || (Array.isArray(data) ? data : [])
-        state.pagination = data.pagination || state.pagination
+        const data = payload?.data || payload
+        state.products = data?.items || data?.products || (Array.isArray(data) ? data : [])
+        state.pagination = {
+          total: data?.totalItems ?? data?.total ?? state.pagination.total,
+          page: data?.page ?? state.pagination.page,
+          limit: data?.limit ?? state.pagination.limit,
+          totalPages: data?.totalPages ?? state.pagination.totalPages,
+        }
       })
       .addCase(fetchProducts.rejected, (state, { payload }) => {
         state.loading = false
@@ -66,7 +71,7 @@ const productSlice = createSlice({
       })
       .addCase(fetchProductById.fulfilled, (state, { payload }) => {
         state.loading = false
-        state.currentProduct = payload.data || payload
+        state.currentProduct = payload?.data || payload
       })
       .addCase(fetchProductById.rejected, (state, { payload }) => {
         state.loading = false
@@ -81,9 +86,12 @@ const productSlice = createSlice({
       })
       .addCase(createProduct.fulfilled, (state, { payload }) => {
         state.loading = false
-        const newProduct = payload.data || payload
-        if (newProduct) {
-          state.products.unshift(newProduct)
+        const newProduct = payload?.data || payload
+        if (newProduct && newProduct._id) {
+          const exists = state.products.some((p) => p._id === newProduct._id)
+          if (!exists) {
+            state.products.unshift(newProduct)
+          }
           state.currentProduct = newProduct
         }
       })
@@ -100,7 +108,7 @@ const productSlice = createSlice({
       })
       .addCase(updateProduct.fulfilled, (state, { payload }) => {
         state.loading = false
-        const updated = payload.data || payload
+        const updated = payload?.data || payload
         if (updated?._id) {
           const idx = state.products.findIndex((p) => p._id === updated._id)
           if (idx !== -1) state.products[idx] = updated
@@ -135,7 +143,13 @@ const productSlice = createSlice({
       })
       .addCase(fetchVariants.fulfilled, (state, { payload }) => {
         state.variantLoading = false
-        state.variantsByProductId[payload.productId] = payload.variants || []
+        const rawVariants = payload?.variants?.data ?? payload?.variants
+        const list = Array.isArray(rawVariants)
+          ? rawVariants
+          : Array.isArray(rawVariants?.items)
+          ? rawVariants.items
+          : []
+        state.variantsByProductId[payload.productId] = list
       })
       .addCase(fetchVariants.rejected, (state) => {
         state.variantLoading = false
@@ -146,8 +160,14 @@ const productSlice = createSlice({
       })
       .addCase(createVariant.fulfilled, (state, { payload }) => {
         state.variantLoading = false
-        const currentList = state.variantsByProductId[payload.productId] || []
-        state.variantsByProductId[payload.productId] = [payload.variant, ...currentList]
+        const variant = payload?.variant?.data || payload?.variant
+        if (variant && variant._id) {
+          const currentList = state.variantsByProductId[payload.productId] || []
+          const exists = currentList.some((v) => v._id === variant._id)
+          if (!exists) {
+            state.variantsByProductId[payload.productId] = [variant, ...currentList]
+          }
+        }
       })
       .addCase(createVariant.rejected, (state, { payload }) => {
         state.variantLoading = false

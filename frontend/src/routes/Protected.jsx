@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router'
-import { useSelector }       from 'react-redux'
+import { useSelector } from 'react-redux'
 import {
   selectIsAuthenticated,
   selectIsInitialized,
@@ -7,23 +7,10 @@ import {
 } from '../features/auth/auth.slice'
 import LoadingScreen from '../components/common/LoadingScreen'
 
-// ─── ProtectedRoute ───────────────────────────────────────────────────────────
-/**
- * Wraps routes that require authentication (and optionally a specific role).
- *
- * Usage in routes:
- *   <Route element={<ProtectedRoute />}>
- *     <Route path="/dashboard" element={<Dashboard />} />
- *   </Route>
- *
- *   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
- *     <Route path="/admin" element={<AdminPanel />} />
- *   </Route>
- */
 const ProtectedRoute = ({ allowedRoles = [], redirectTo = '/login' }) => {
-  const isInitialized   = useSelector(selectIsInitialized)
+  const isInitialized = useSelector(selectIsInitialized)
   const isAuthenticated = useSelector(selectIsAuthenticated)
-  const user            = useSelector(selectUser)
+  const user = useSelector(selectUser)
 
   // Wait for initial session verification on page refresh
   if (!isInitialized) {
@@ -47,7 +34,7 @@ const ProtectedRoute = ({ allowedRoles = [], redirectTo = '/login' }) => {
  * Redirects authenticated users away from auth pages to dashboard.
  */
 export const GuestRoute = ({ redirectTo = '/dashboard' }) => {
-  const isInitialized   = useSelector(selectIsInitialized)
+  const isInitialized = useSelector(selectIsInitialized)
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   // Wait for initial session verification on page refresh

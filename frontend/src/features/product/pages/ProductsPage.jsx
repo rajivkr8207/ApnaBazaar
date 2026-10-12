@@ -5,6 +5,7 @@ import useCategory from '../../category/hooks/useCategory'
 import CreateProductModal from '../components/CreateProductModal'
 import CreateCategoryModal from '../../category/components/CreateCategoryModal'
 import StockModal from '../components/StockModal'
+import VariantModal from '../components/VariantModal'
 import Button from '../../../components/common/Button'
 
 const ProductsPage = () => {
@@ -14,6 +15,7 @@ const ProductsPage = () => {
   const [createProductOpen, setCreateProductOpen] = useState(false)
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false)
   const [stockModalTarget, setStockModalTarget] = useState(null)
+  const [variantModalTarget, setVariantModalTarget] = useState(null)
 
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
@@ -194,12 +196,13 @@ const ProductsPage = () => {
                       >
                         <span>📦</span> Stock
                       </button>
-                      <Link
-                        to={`/products/${product._id}`}
-                        className="px-2.5 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 text-xs font-medium border border-violet-500/30 transition-colors flex items-center gap-1"
+                      <button
+                        onClick={() => setVariantModalTarget(product)}
+                        className="px-2.5 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 hover:text-white text-xs font-semibold border border-violet-500/30 transition-colors flex items-center gap-1"
+                        title="Add Variant for this product"
                       >
-                        <span>✨</span> Variants
-                      </Link>
+                        <span>✨</span> + Variant
+                      </button>
                     </div>
                   </div>
 
@@ -207,9 +210,9 @@ const ProductsPage = () => {
                   <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-800/40">
                     <Link
                       to={`/products/${product._id}`}
-                      className="text-violet-400 hover:text-cyan-400 font-medium transition-colors"
+                      className="text-violet-400 hover:text-cyan-400 font-medium transition-colors flex items-center gap-1"
                     >
-                      View Details →
+                      View Details & Variants →
                     </Link>
                     <button
                       onClick={async () => {
@@ -235,7 +238,12 @@ const ProductsPage = () => {
       <CreateProductModal
         isOpen={createProductOpen}
         onClose={() => setCreateProductOpen(false)}
-        onCreated={() => loadProducts()}
+        onCreated={(newProd) => {
+          loadProducts()
+          if (newProd) {
+            setVariantModalTarget(newProd)
+          }
+        }}
       />
 
       <CreateCategoryModal
@@ -248,7 +256,15 @@ const ProductsPage = () => {
         isOpen={Boolean(stockModalTarget)}
         onClose={() => setStockModalTarget(null)}
         product={stockModalTarget?.product}
+        variant={stockModalTarget?.variant}
         onUpdated={() => loadProducts()}
+      />
+
+      <VariantModal
+        isOpen={Boolean(variantModalTarget)}
+        onClose={() => setVariantModalTarget(null)}
+        product={variantModalTarget}
+        onCreated={() => loadProducts()}
       />
     </div>
   )

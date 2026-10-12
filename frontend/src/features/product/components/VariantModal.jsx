@@ -38,7 +38,8 @@ const VariantModal = ({ isOpen, onClose, product, onCreated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.sku.trim()) return
+    const cleanSku = formData.sku.trim().toUpperCase()
+    if (!cleanSku) return
 
     // Build attributes object
     const attrsObj = {}
@@ -49,7 +50,7 @@ const VariantModal = ({ isOpen, onClose, product, onCreated }) => {
     })
 
     const payload = {
-      sku: formData.sku.trim(),
+      sku: cleanSku,
       currency: formData.currency || 'INR',
       attributes: attrsObj,
     }
@@ -60,17 +61,20 @@ const VariantModal = ({ isOpen, onClose, product, onCreated }) => {
 
     const created = await handleCreateVariant(product._id, payload)
     if (created) {
+      const variantObj = created?._id ? created : created?.data || created
+      const variantId = variantObj?._id
+
       // If initial stock was provided, upsert stock for this variant
-      if (formData.initialStock !== '') {
+      if (formData.initialStock !== '' && variantId) {
         const qty = Number(formData.initialStock)
-        await handleUpsertStock(product._id, created._id, {
+        await handleUpsertStock(product._id, variantId, {
           quantity: qty,
           stockStatus: qty > 0 ? 'in_stock' : 'out_of_stock',
         })
       }
 
       setFormData({ sku: '', price: '', currency: 'INR', initialStock: '10' })
-      if (onCreated) onCreated(created)
+      if (onCreated) onCreated(variantObj || created)
       onClose()
     }
   }

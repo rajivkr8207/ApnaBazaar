@@ -29,11 +29,14 @@ const ProductDetailPage = () => {
         if (prod) {
           // Load variants
           loadVariants(id).then((vRes) => {
-            setVariants(vRes.payload?.variants || [])
+            const raw = vRes.payload?.variants ?? vRes.payload?.data ?? vRes.payload
+            const list = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : []
+            setVariants(list)
           })
           // Load base stock
           loadStock(id, null).then((sRes) => {
-            setBaseStock(sRes.payload?.stock || null)
+            const rawStock = sRes.payload?.stock ?? sRes.payload?.data ?? sRes.payload
+            setBaseStock(rawStock || null)
           })
         }
       })
@@ -42,8 +45,15 @@ const ProductDetailPage = () => {
 
   const refreshVariantsAndStock = () => {
     if (id) {
-      loadVariants(id).then((vRes) => setVariants(vRes.payload?.variants || []))
-      loadStock(id, null).then((sRes) => setBaseStock(sRes.payload?.stock || null))
+      loadVariants(id).then((vRes) => {
+        const raw = vRes.payload?.variants ?? vRes.payload?.data ?? vRes.payload
+        const list = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : []
+        setVariants(list)
+      })
+      loadStock(id, null).then((sRes) => {
+        const rawStock = sRes.payload?.stock ?? sRes.payload?.data ?? sRes.payload
+        setBaseStock(rawStock || null)
+      })
     }
   }
 

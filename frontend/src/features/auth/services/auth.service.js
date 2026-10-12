@@ -47,5 +47,11 @@ const updateProfile = (formData) => api.put('/auth/profile', formData, {
     : {},
 })
 
-const authService = { register, login, verifyOtp, resendOtp, logout, getProfile, updateProfile }
+/**
+ * PATCH /auth/change-password  (requires auth token)
+ * Body: { oldPassword, newPassword }
+ */
+const changePassword = (formData) => api.patch('/auth/change-password', formData)
+
+const authService = { register, login, verifyOtp, resendOtp, logout, getProfile, updateProfile, changePassword }
 export default authService          

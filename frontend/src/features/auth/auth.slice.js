@@ -14,7 +14,6 @@ const extractUser = (payload) => {
 
 const initialState = {
   user: null, // { _id, fullName, username, email, role, avatar, ... }
-  token: null,
   isAuthenticated: false,
   isInitialized: false, // true once initial profile check on page refresh finishes
   loading: false,
@@ -29,7 +28,6 @@ const authSlice = createSlice({
   reducers: {
     logout(state) {
       state.user = null
-      state.token = null
       state.isAuthenticated = false
       state.isInitialized = true
       state.error = null
@@ -63,7 +61,6 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, { payload }) => {
         state.loading = false
         state.user = extractUser(payload)
-        state.token = payload?.data?.accessToken || payload?.accessToken || state.token
         state.isAuthenticated = true
         state.isInitialized = true
       })
@@ -81,7 +78,6 @@ const authSlice = createSlice({
       .addCase(verifyOtp.fulfilled, (state, { payload }) => {
         state.loading = false
         state.user = extractUser(payload)
-        state.token = payload?.data?.accessToken || payload?.accessToken || state.token
         state.isAuthenticated = true
         state.isInitialized = true
       })
@@ -94,7 +90,6 @@ const authSlice = createSlice({
     builder
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null
-        state.token = null
         state.isAuthenticated = false
         state.isInitialized = true
       })
@@ -115,7 +110,6 @@ const authSlice = createSlice({
       .addCase(fetchProfile.rejected, (state, { payload }) => {
         state.loading = false
         state.user = null
-        state.token = null
         state.isAuthenticated = false
         state.isInitialized = true
         state.error = payload

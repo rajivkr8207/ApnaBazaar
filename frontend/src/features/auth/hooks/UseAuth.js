@@ -81,7 +81,6 @@ const useAuth = () => {
   const dismissError = () => dispatch(clearError())
 
   return {
-    // State
     user,
     isAuthenticated,
     isInitialized,

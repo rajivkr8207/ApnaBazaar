@@ -1,11 +1,11 @@
 import { Outlet } from 'react-router'
-import Sidebar from './Sidebar'
+import SideNavbar from './SideNavbar'
 
 const AppLayout = () => {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans antialiased text-slate-100">
-      {/* Sidebar */}
-      <Sidebar />
+      {/* Side Navigation Bar */}
+      <SideNavbar />
 
       {/* Main Content Area */}
       <main
