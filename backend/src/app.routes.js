@@ -7,6 +7,7 @@ import productVariantRouter from './modules/productVariant/productVariant.route.
 import productStockRouter from './modules/productStock/productStock.route.js';
 import cartRouter from './modules/cart/cart.route.js';
 import paymentRouter from './modules/payment/payment.route.js';
+import customerAddressRouter from './modules/customerAddress/customerAddress.route.js';
 
 const AllRoutes = express.Router();
 
@@ -18,5 +19,6 @@ AllRoutes.use('/products', productVariantRouter);
 AllRoutes.use('/products', productStockRouter);
 AllRoutes.use('/cart', cartRouter);
 AllRoutes.use('/payments', paymentRouter);
+AllRoutes.use('/addresses', customerAddressRouter);
 
 export { AllRoutes };

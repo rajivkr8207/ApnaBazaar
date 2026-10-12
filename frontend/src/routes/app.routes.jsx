@@ -10,7 +10,7 @@ import AppLayout from '../components/layout/AppLayout'
 import Unauthorized from '../components/common/Unauthorized'
 import NotFound from '../components/common/NotFound'
 
-// ── Feature Pages ────────────────────────────────────────────────────────────
+// ── Seller / Admin Feature Pages ─────────────────────────────────────────────
 import Login from '../features/auth/pages/Login'
 import Register from '../features/auth/pages/Register'
 import VerifyOtp from '../features/auth/pages/VerifyOtp'
@@ -20,16 +20,25 @@ import ProductsPage from '../features/product/pages/ProductsPage'
 import ProductDetailPage from '../features/product/pages/ProductDetailPage'
 import CategoryList from '../features/category/pages/CategoryList'
 
+// ── Customer Store Pages ─────────────────────────────────────────────────────
+import StoreLayout from '../features/store/components/StoreLayout'
+import StoreFrontPage from '../features/store/pages/StoreFrontPage'
+import CatalogPage from '../features/store/pages/CatalogPage'
+import StoreProductDetailPage from '../features/store/pages/ProductDetailPage'
+import CartPage from '../features/store/pages/CartPage'
+import CheckoutPage from '../features/store/pages/CheckoutPage'
+import OrdersPage from '../features/store/pages/OrdersPage'
+
 // ── Root Index Redirect Helper ───────────────────────────────────────────────
 const RootRedirect = () => {
   const isInitialized = useSelector(selectIsInitialized)
-  const isAuthenticated = useSelector(selectIsAuthenticated)
 
   if (!isInitialized) {
     return <LoadingScreen message="Checking session..." />
   }
 
-  return <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />
+  // Always send to the customer storefront by default
+  return <Navigate to="/store" replace />
 }
 
 // ── App Router ───────────────────────────────────────────────────────────────
@@ -38,17 +47,27 @@ const AppRouter = () => {
     <BrowserRouter>
       <Routes>
 
-        {/* ── Default redirect based on auth status ─────────────────────────── */}
+        {/* ── Default redirect ──────────────────────────────────────────────── */}
         <Route index element={<RootRedirect />} />
 
         {/* ── Guest-only routes (redirect if already logged in) ─────────────── */}
-        <Route element={<GuestRoute />}>
+        <Route element={<GuestRoute redirectTo="/store" />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
         </Route>
 
-        {/* ── Protected routes (must be logged in) ──────────────────────────── */}
+        {/* ── Customer Store (public browsable, auth for cart/checkout/orders) ── */}
+        <Route path="/store" element={<StoreLayout />}>
+          <Route index element={<StoreFrontPage />} />
+          <Route path="catalog" element={<CatalogPage />} />
+          <Route path="product/:id" element={<StoreProductDetailPage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+        </Route>
+
+        {/* ── Seller / Admin Dashboard (protected) ──────────────────────────── */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
