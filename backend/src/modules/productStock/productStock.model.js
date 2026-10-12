@@ -44,7 +44,7 @@ const productStockSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-productStockSchema.pre('save', function setStockStatus(next) {
+productStockSchema.pre('save', function setStockStatus() {
   if (this.quantity <= 0) {
     this.stockStatus = 'out_of_stock';
   } else if (this.quantity <= 5) {
@@ -52,8 +52,6 @@ productStockSchema.pre('save', function setStockStatus(next) {
   } else {
     this.stockStatus = 'in_stock';
   }
-
-  next();
 });
 
 productStockSchema.index({ product: 1, variant: 1 }, { unique: true, sparse: true });

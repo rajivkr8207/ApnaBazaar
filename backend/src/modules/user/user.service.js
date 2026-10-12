@@ -150,6 +150,8 @@ export const verifyUserByOTP = async (email, otp) => {
   const user = await User.findOne({ email, otp });
   if (!user) throw new ApiError(404, 'Invalid OTP');
   user.isVerified = true;
+  user.otp = null;
+  user.otpExpire = null;
   await user.save();
   return user;
 };
