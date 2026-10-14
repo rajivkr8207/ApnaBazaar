@@ -1,4 +1,3 @@
-
 import { clearInterval, setInterval } from 'node:timers';
 import { expirePendingPayments } from './payment.service.js';
 import logger from '../../config/logger.js';
@@ -12,9 +11,7 @@ export function startPaymentExpiryJob() {
     try {
       await expirePendingPayments();
     } catch (error) {
-      logger.error(
-        `Could not expire pending checkouts: ${error.message}`
-      );
+      logger.error(`Could not expire pending checkouts: ${error.message}`);
     }
   };
 

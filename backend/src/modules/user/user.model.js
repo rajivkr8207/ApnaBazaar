@@ -4,8 +4,14 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import Config from '../../config/Config.js';
 
-const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
-const normalizeUsername = (value) => String(value || '').trim().toLowerCase();
+const normalizeEmail = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase();
+const normalizeUsername = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase();
 
 const userSchema = new mongoose.Schema(
   {
@@ -111,19 +117,17 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-
 userSchema.pre('save', async function () {
   if (this.isModified('password') && this.password) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-  return
+  return;
 });
 
 userSchema.methods.comparePassword = async function comparePassword(password) {
   if (!password || !this.password) {
     return false;
   }
-
   return bcrypt.compare(password, this.password);
 };
 
@@ -139,22 +143,6 @@ userSchema.methods.setRefreshTokenHash = function setRefreshTokenHash(token) {
   this.refreshTokenHash = this.hashToken(token);
   this.refreshTokenVersion = (this.refreshTokenVersion || 0) + 1;
   return this.refreshTokenHash;
-};
-
-userSchema.methods.compareRefreshToken = function compareRefreshToken(token) {
-  if (!token || !this.refreshTokenHash) {
-    return false;
-  }
-
-  const incomingHash = this.hashToken(token);
-  const storedHash = Buffer.from(this.refreshTokenHash, 'hex');
-  const incomingHashBuffer = Buffer.from(incomingHash, 'hex');
-
-  if (storedHash.length !== incomingHashBuffer.length) {
-    return false;
-  }
-
-  return crypto.timingSafeEqual(storedHash, incomingHashBuffer);
 };
 
 userSchema.methods.generateAccessToken = function generateAccessToken() {
@@ -186,18 +174,18 @@ userSchema.methods.generateRefreshToken = function generateRefreshToken() {
   );
 };
 
-userSchema.methods.toJSON = function toJSON() {
-  const userObject = this.toObject();
+// userSchema.methods.toJSON = function toJSON() {
+//   const userObject = this.toObject();
 
-  delete userObject.password;
-  delete userObject.otp;
-  delete userObject.otpExpire;
-  delete userObject.refreshTokenHash;
-  delete userObject.googleId;
-  delete userObject.__v;
+//   delete userObject.password;
+//   delete userObject.otp;
+//   delete userObject.otpExpire;
+//   delete userObject.refreshTokenHash;
+//   delete userObject.googleId;
+//   delete userObject.__v;
 
-  return userObject;
-};
+//   return userObject;
+// };
 
 const User = mongoose.model('User', userSchema);
 

@@ -1,11 +1,10 @@
-import { useEffect, useState, useRef } from 'react'
-import { useNavigate }                 from 'react-router'
-import useAuth                         from '../hooks/UseAuth'
-import InputField                      from '../../../components/common/Inputfield'
-import Button                          from '../../../components/common/Button'
-import { ROLE_LABELS }                 from '../../../constants/roles'
-import authService                from '../services/auth.service'
-import { toast }                       from 'react-toastify'
+import { useEffect, useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router'
+import useAuth from '../hooks/UseAuth'
+import InputField from '../../../components/common/Inputfield'
+import Button from '../../../components/common/Button'
+import { ROLE_LABELS } from '../../../constants/roles'
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 const StatCard = ({ icon, label, value }) => (
@@ -47,11 +46,17 @@ const Profile = () => {
   const navigate = useNavigate()
   const { user, loading, handleUpdateProfile, handleLogout, loadProfile } = useAuth()
 
-  const [editing, setEditing]       = useState(false)
-  const [saving, setSaving]         = useState(false)
-  const [form, setForm]             = useState({ name: '', email: '' })
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const fileRef = useRef(null)
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({ defaultValues: { name: '' } })
 
   // Load profile on mount
   useEffect(() => { loadProfile() }, [])
@@ -59,12 +64,9 @@ const Profile = () => {
   // Sync form when user data arrives
   useEffect(() => {
     if (user) {
-      setForm({ name: user.fullName || user.name || '', email: user.email || '' })
+      reset({ name: user.fullName || user.name || '' })
     }
-  }, [user])
-
-  const onChange = (e) =>
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
+  }, [user, reset])
 
   const onAvatarChange = (e) => {
     const file = e.target.files?.[0]
@@ -72,11 +74,10 @@ const Profile = () => {
     setAvatarPreview(URL.createObjectURL(file))
   }
 
-  const onSave = async (e) => {
-    e.preventDefault()
+  const onSave = async (data) => {
     setSaving(true)
     const fd = new FormData()
-    fd.append('name', form.name)
+    fd.append('name', data.name)
     if (fileRef.current?.files?.[0]) fd.append('avatar', fileRef.current.files[0])
     await handleUpdateProfile(fd)
     setSaving(false)
@@ -87,7 +88,7 @@ const Profile = () => {
   const onCancel = () => {
     setEditing(false)
     setAvatarPreview(null)
-    if (user) setForm({ name: user.name || '', email: user.email || '' })
+    reset({ name: user?.fullName || user?.name || '' })
   }
 
   if (loading && !user) {
@@ -118,7 +119,7 @@ const Profile = () => {
               <div className={editing ? 'opacity-80 transition-opacity' : ''}>
                 {avatarPreview
                   ? <img src={avatarPreview} alt="preview"
-                         className="w-24 h-24 rounded-full object-cover border-2 border-violet-500/40" />
+                    className="w-24 h-24 rounded-full object-cover border-2 border-violet-500/40" />
                   : <Avatar user={user} size="lg" />
                 }
               </div>
@@ -184,24 +185,23 @@ const Profile = () => {
               Edit Profile
             </h2>
 
-            <form onSubmit={onSave} id="edit-profile-form" className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit(onSave)} id="edit-profile-form" className="flex flex-col gap-4">
               <InputField
                 id="profile-name"
-                name="name"
                 label="Full name"
                 placeholder="Your name"
-                value={form.name}
-                onChange={onChange}
-                required
+                error={errors.name?.message}
+                {...register('name', { required: 'Full name is required' })}
               />
 
+              {/* Email is read-only, not registered with RHF */}
               <InputField
                 id="profile-email"
                 name="email"
                 label="Email address"
                 type="email"
-                value={form.email}
-                onChange={onChange}
+                value={user?.email || ''}
+                onChange={() => {}}
                 disabled
                 className="opacity-60 cursor-not-allowed"
               />
@@ -241,11 +241,11 @@ const Profile = () => {
             </h2>
             <div className="space-y-4">
               {[
-                { label: 'Full Name',  value: user?.fullName || user?.name  },
-                { label: 'Username',   value: user?.username ? `@${user.username}` : null },
-                { label: 'Email',      value: user?.email },
-                { label: 'Role',       value: ROLE_LABELS[user?.role] || user?.role },
-                { label: 'Account ID', value: user?._id   },
+                { label: 'Full Name', value: user?.fullName || user?.name },
+                { label: 'Username', value: user?.username ? `@${user.username}` : null },
+                { label: 'Email', value: user?.email },
+                { label: 'Role', value: ROLE_LABELS[user?.role] || user?.role },
+                { label: 'Account ID', value: user?._id },
               ].map(({ label, value }) => (
                 <div key={label} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4
                                             py-3 border-b border-slate-800 last:border-0">

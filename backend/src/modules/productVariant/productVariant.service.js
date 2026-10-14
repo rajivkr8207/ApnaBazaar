@@ -22,7 +22,16 @@ const ensureVariantBelongsToSellerProduct = async (productId, variantId, sellerI
   return { product, variant };
 };
 
-export const createProductVariant = async ({ productId, sellerId, sku, attributes, images, price, currency, isActive }) => {
+export const createProductVariant = async ({
+  productId,
+  sellerId,
+  sku,
+  attributes,
+  images,
+  price,
+  currency,
+  isActive,
+}) => {
   await ensureSellerOwnsProduct(productId, sellerId);
 
   const normalizedSku = String(sku || '').trim();
@@ -61,7 +70,11 @@ export const getProductVariantById = async ({ productId, variantId, sellerId }) 
 };
 
 export const updateProductVariant = async ({ productId, variantId, sellerId, payload }) => {
-  const { product, variant } = await ensureVariantBelongsToSellerProduct(productId, variantId, sellerId);
+  const { product, variant } = await ensureVariantBelongsToSellerProduct(
+    productId,
+    variantId,
+    sellerId,
+  );
 
   const { sku, attributes, images, price, currency, isActive } = payload;
 
@@ -72,7 +85,11 @@ export const updateProductVariant = async ({ productId, variantId, sellerId, pay
     }
 
     const nextSku = normalizedSku.toUpperCase();
-    const existingVariant = await ProductVariant.findOne({ product: product._id, sku: nextSku, _id: { $ne: variant._id } });
+    const existingVariant = await ProductVariant.findOne({
+      product: product._id,
+      sku: nextSku,
+      _id: { $ne: variant._id },
+    });
     if (existingVariant) {
       throw new ApiError(409, 'A variant with this SKU already exists for this product');
     }

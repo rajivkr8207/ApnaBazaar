@@ -7,10 +7,7 @@ export const addCartItemValidation = [
     .optional({ nullable: true })
     .isMongoId()
     .withMessage('A valid variant ID is required when provided'),
-  body('quantity')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Quantity must be a positive integer'),
+  body('quantity').optional().isInt({ min: 1 }).withMessage('Quantity must be a positive integer'),
   validate,
 ];
 

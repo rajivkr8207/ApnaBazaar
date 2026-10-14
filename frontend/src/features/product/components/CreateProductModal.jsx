@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import useProduct from '../hooks/useProduct'
 import useCategory from '../../category/hooks/useCategory'
 import CreateCategoryModal from '../../category/components/CreateCategoryModal'
@@ -10,15 +11,23 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
   const { categories, loadCategories } = useCategory()
   const [showCategoryModal, setShowCategoryModal] = useState(false)
 
-  const [form, setForm] = useState({
-    name: '',
-    category: '',
-    price: '',
-    sku: '',
-    brand: '',
-    description: '',
-    initialStock: '25',
-    status: 'published',
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      name: '',
+      category: '',
+      price: '',
+      sku: '',
+      brand: '',
+      description: '',
+      initialStock: '25',
+      status: 'published',
+    },
   })
 
   useEffect(() => {
@@ -29,49 +38,40 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
 
   if (!isOpen) return null
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!form.name.trim() || !form.category || !form.price) return
+  const onSubmit = async (data) => {
+    if (!data.name.trim() || !data.category || !data.price) return
 
     const payload = {
-      name: form.name.trim(),
-      category: form.category,
-      price: Number(form.price),
-      status: form.status,
+      name: data.name.trim(),
+      category: data.category,
+      price: Number(data.price),
+      status: data.status,
     }
 
-    if (form.sku.trim()) payload.sku = form.sku.trim()
-    if (form.brand.trim()) payload.brand = form.brand.trim()
-    if (form.description.trim()) payload.description = form.description.trim()
+    if (data.sku.trim()) payload.sku = data.sku.trim()
+    if (data.brand.trim()) payload.brand = data.brand.trim()
+    if (data.description.trim()) payload.description = data.description.trim()
 
     const created = await handleCreateProduct(payload)
     if (created) {
       // Set initial base product stock if provided
-      if (form.initialStock !== '') {
-        const qty = Number(form.initialStock)
+      if (data.initialStock !== '') {
+        const qty = Number(data.initialStock)
         await handleUpsertStock(created._id, null, {
           quantity: qty,
           stockStatus: qty > 0 ? 'in_stock' : 'out_of_stock',
         })
       }
 
-      setForm({
-        name: '',
-        category: '',
-        price: '',
-        sku: '',
-        brand: '',
-        description: '',
-        initialStock: '25',
-        status: 'published',
-      })
+      reset()
       if (onCreated) onCreated(created)
       onClose()
     }
+  }
+
+  const handleClose = () => {
+    reset()
+    onClose()
   }
 
   return (
@@ -90,22 +90,20 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
             >
               ✕
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <InputField
               id="product-name"
               label="Product Name *"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
               placeholder="e.g. Slim Fit Denim Shirt"
-              required
+              error={errors.name?.message}
+              {...register('name', { required: 'Product name is required' })}
             />
 
             {/* Category selection + quick create */}
@@ -123,11 +121,11 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
                 </button>
               </div>
               <select
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-200 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all"
+                {...register('category', { required: 'Please select a category' })}
+                className={[
+                  'w-full px-3.5 py-2.5 rounded-xl bg-slate-950/60 border text-slate-200 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all',
+                  errors.category ? 'border-red-500' : 'border-slate-800',
+                ].join(' ')}
               >
                 <option value="">Select a category</option>
                 {categories.map((c) => (
@@ -136,6 +134,11 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
                   </option>
                 ))}
               </select>
+              {errors.category && (
+                <p className="text-xs text-red-400 flex items-center gap-1">
+                  <span>⚠</span> {errors.category.message}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -145,20 +148,20 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
                 type="number"
                 step="0.01"
                 min="0"
-                name="price"
-                value={form.price}
-                onChange={handleChange}
                 placeholder="999.00"
-                required
+                error={errors.price?.message}
+                {...register('price', {
+                  required: 'Price is required',
+                  min: { value: 0, message: 'Price must be positive' },
+                })}
               />
 
               <InputField
                 id="product-sku"
                 label="Base SKU (Optional)"
-                name="sku"
-                value={form.sku}
-                onChange={handleChange}
                 placeholder="e.g. SHIRT-001"
+                error={errors.sku?.message}
+                {...register('sku')}
               />
             </div>
 
@@ -166,10 +169,9 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
               <InputField
                 id="product-brand"
                 label="Brand"
-                name="brand"
-                value={form.brand}
-                onChange={handleChange}
                 placeholder="e.g. ApnaBazaar Essentials"
+                error={errors.brand?.message}
+                {...register('brand')}
               />
 
               <InputField
@@ -177,10 +179,9 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
                 label="Initial Stock Quantity"
                 type="number"
                 min="0"
-                name="initialStock"
-                value={form.initialStock}
-                onChange={handleChange}
                 placeholder="25"
+                error={errors.initialStock?.message}
+                {...register('initialStock')}
               />
             </div>
 
@@ -189,9 +190,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
                 Publish Status
               </label>
               <select
-                name="status"
-                value={form.status}
-                onChange={handleChange}
+                {...register('status')}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-200 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all"
               >
                 <option value="published">Published (Live in catalog)</option>
@@ -204,12 +203,10 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
                 Description (Optional)
               </label>
               <textarea
-                name="description"
                 rows={3}
-                value={form.description}
-                onChange={handleChange}
                 placeholder="Detailed description of the product..."
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-200 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all resize-none placeholder:text-slate-600"
+                {...register('description')}
               />
             </div>
 
@@ -219,7 +216,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
                 variant="outline"
                 size="md"
                 fullWidth
-                onClick={onClose}
+                onClick={handleClose}
               >
                 Cancel
               </Button>
@@ -244,7 +241,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreated }) => {
         onCreated={(newCat) => {
           loadCategories()
           if (newCat?._id) {
-            setForm((p) => ({ ...p, category: newCat._id }))
+            setValue('category', newCat._id)
           }
         }}
       />

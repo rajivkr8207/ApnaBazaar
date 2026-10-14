@@ -9,7 +9,7 @@ import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
 
 const corsOption = {
-  origin: [Config.frontend_url, 'http://localhost:5173', "http://localhost:5175"],
+  origin: [Config.frontend_url, 'http://localhost:5173', 'http://localhost:5175'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
@@ -37,11 +37,13 @@ export const Middleware = (app) => {
   app.use(express.urlencoded({ extended: true, limit: '16kb' }));
   app.use(cookieParser());
   app.use(cors(corsOption));
-  app.use(morgan('dev', {
-    skip: (req, res) => {
-      return req.url.startsWith('/api/v1/payments/webhook')
-    }
-  }));
+  app.use(
+    morgan('dev', {
+      skip: (req, res) => {
+        return req.url.startsWith('/api/v1/payments/webhook');
+      },
+    }),
+  );
   app.use(
     helmet({
       contentSecurityPolicy: {

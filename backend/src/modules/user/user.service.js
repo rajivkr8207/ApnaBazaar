@@ -15,14 +15,13 @@ export const registerUser = async ({
   provider = 'local',
   googleId = null,
 }) => {
-  const safeRole = role === 'admin' ? 'customer' : role || 'customer';
   const existingUser = await User.findOne({ $or: [{ email }, { username }, { mobile }] });
   if (existingUser) {
     throw new ApiError(409, 'User with this email, username, or mobile already exists');
   }
-
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+  console.log(role, googleId, otp);
   const user = await User.create({
     fullName,
     username,
@@ -30,9 +29,8 @@ export const registerUser = async ({
     password,
     mobile: mobile || null,
     avatar: image,
-    role: safeRole,
+    role: role,
     provider,
-    googleId,
     otp,
     otpExpire,
     isVerified: provider !== 'local',

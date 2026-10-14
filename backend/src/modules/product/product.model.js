@@ -29,7 +29,10 @@ const productSchema = new mongoose.Schema(
       trim: true,
       unique: true,
       lowercase: true,
-      match: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Product slug must be lowercase letters, numbers, and hyphens only'],
+      match: [
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        'Product slug must be lowercase letters, numbers, and hyphens only',
+      ],
     },
 
     sku: {

@@ -62,7 +62,9 @@ export const getCatalogProductsController = asyncHandler(async (req, res) => {
     sort: req.query.sort,
   });
 
-  return res.status(200).json(new ApiResponse(200, result, 'Catalog products fetched successfully'));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result, 'Catalog products fetched successfully'));
 });
 
 export const getProductByIdController = asyncHandler(async (req, res) => {

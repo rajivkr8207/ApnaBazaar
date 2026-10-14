@@ -58,15 +58,9 @@ export const createProductValidation = [
     .isLength({ max: 2000 })
     .withMessage('Description cannot exceed 2000 characters'),
 
-  body('attributes')
-    .optional()
-    .isObject()
-    .withMessage('Attributes must be an object'),
+  body('attributes').optional().isObject().withMessage('Attributes must be an object'),
 
-  body('seo')
-    .optional()
-    .isObject()
-    .withMessage('SEO metadata must be an object'),
+  body('seo').optional().isObject().withMessage('SEO metadata must be an object'),
 
   body('images')
     .optional()
@@ -141,15 +135,9 @@ export const updateProductValidation = [
     .isLength({ max: 2000 })
     .withMessage('Description cannot exceed 2000 characters'),
 
-  body('attributes')
-    .optional()
-    .isObject()
-    .withMessage('Attributes must be an object'),
+  body('attributes').optional().isObject().withMessage('Attributes must be an object'),
 
-  body('seo')
-    .optional()
-    .isObject()
-    .withMessage('SEO metadata must be an object'),
+  body('seo').optional().isObject().withMessage('SEO metadata must be an object'),
 
   body('images')
     .optional()

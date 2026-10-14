@@ -42,6 +42,11 @@ export const registerValidation = [
     .trim()
     .matches(/^[6-9]\d{9}$/)
     .withMessage('Please enter a valid mobile number'),
+  body('role')
+    .optional()
+    .trim()
+    .isIn(['seller', 'customer'])
+    .withMessage('Please provide a valid role'),
   validate,
 ];
 

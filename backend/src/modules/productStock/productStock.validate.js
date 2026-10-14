@@ -3,13 +3,19 @@ import { validate } from '../../config/validate.js';
 
 export const productStockRequestValidation = [
   param('productId').isMongoId().withMessage('A valid product ID is required'),
-  param('variantId').optional().isMongoId().withMessage('A valid variant ID is required when provided'),
+  param('variantId')
+    .optional()
+    .isMongoId()
+    .withMessage('A valid variant ID is required when provided'),
   validate,
 ];
 
 export const upsertProductStockValidation = [
   param('productId').isMongoId().withMessage('A valid product ID is required'),
-  param('variantId').optional().isMongoId().withMessage('A valid variant ID is required when provided'),
+  param('variantId')
+    .optional()
+    .isMongoId()
+    .withMessage('A valid variant ID is required when provided'),
   body('quantity')
     .notEmpty()
     .withMessage('Quantity is required')

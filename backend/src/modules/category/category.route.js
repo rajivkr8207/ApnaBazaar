@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { verifyAdmin, verifyAdminOrSeller, verifyJWT, verifySeller } from '../../middlewares/auth.middleware.js';
+import {
+  verifyAdmin,
+  verifyAdminOrSeller,
+  verifyJWT,
+  verifySeller,
+} from '../../middlewares/auth.middleware.js';
 import {
   activateCategoryController,
   createCategoryController,

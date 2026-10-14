@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import useAuth from '../hooks/UseAuth'
 import InputField from '../../../components/common/Inputfield'
@@ -36,16 +36,15 @@ const Logo = () => (
 // ─── Login Page ───────────────────────────────────────────────────────────────
 const Login = () => {
   const { handleLogin, loading, error, dismissError } = useAuth()
-  const [form, setForm] = useState({ identifier: '', password: '' })
 
-  const onChange = (e) => {
-    dismissError()
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ defaultValues: { identifier: '', password: '' } })
 
-  const onSubmit = (e) => {
-    e.preventDefault()
-    handleLogin(form)
+  const onSubmit = (data) => {
+    handleLogin(data)
   }
 
   return (
@@ -67,29 +66,31 @@ const Login = () => {
         </div>
       )}
 
-      <form onSubmit={onSubmit} id="login-form" className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} id="login-form" className="flex flex-col gap-4">
         <InputField
           id="login-identifier"
-          name="identifier"
           label="Email address/ username"
           type="text"
           placeholder="you@example.com or @username"
-          value={form.identifier}
-          onChange={onChange}
-          required
           autoComplete="identifier"
+          error={errors.identifier?.message}
+          {...register('identifier', {
+            required: 'Email or username is required',
+            onChange: () => dismissError(),
+          })}
         />
 
         <InputField
           id="login-password"
-          name="password"
           label="Password"
           type="password"
           placeholder="••••••••"
-          value={form.password}
-          onChange={onChange}
-          required
           autoComplete="current-password"
+          error={errors.password?.message}
+          {...register('password', {
+            required: 'Password is required',
+            onChange: () => dismissError(),
+          })}
         />
 
         <Button
