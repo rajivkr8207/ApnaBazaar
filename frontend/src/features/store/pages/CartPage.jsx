@@ -13,9 +13,8 @@ import { toast } from 'react-toastify'
 
 // ── Cart Item Row ─────────────────────────────────────────────────────────────
 const CartItem = ({ item, onUpdate, onRemove }) => {
-  const price = item.variantPrice > 0 ? item.variantPrice : item.price || 0
-  const image = item.image || item.images?.[0]
-
+  const price = item?.variantPrice > 0 ? item?.variantPrice : item?.price || 0
+  const image = item?.image || item?.images?.[0]
   return (
     <div className="flex gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl hover:border-slate-700 transition-colors">
       {/* Image */}
@@ -29,14 +28,14 @@ const CartItem = ({ item, onUpdate, onRemove }) => {
 
       {/* Details */}
       <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-semibold text-slate-200 line-clamp-2">{item.name}</h4>
-        {item.variantName && (
-          <span className="text-xs text-violet-400 mt-0.5 block">{item.variantName}</span>
+        <h4 className="text-sm font-semibold text-slate-200 line-clamp-2">{item?.product?.name}</h4>
+        {item?.variantName && (
+          <span className="text-xs text-violet-400 mt-0.5 block">{item?.variantName}</span>
         )}
         <p className="text-base font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent mt-1">
-          ₹{(price * item.quantity).toLocaleString('en-IN')}
+          ₹{(item?.price?.amount * item?.quantity).toLocaleString('en-IN')}
         </p>
-        <p className="text-xs text-slate-500">₹{Number(price).toLocaleString('en-IN')} each</p>
+        <p className="text-xs text-slate-500">₹{Number(item?.price?.amount).toLocaleString('en-IN')} each</p>
       </div>
 
       {/* Quantity & Remove */}
@@ -45,16 +44,16 @@ const CartItem = ({ item, onUpdate, onRemove }) => {
         <div className="flex items-center gap-1.5 bg-slate-800 rounded-xl border border-slate-700 p-1">
           <button
             onClick={() => {
-              if (item.quantity <= 1) onRemove(item._id)
-              else onUpdate(item._id, item.quantity - 1)
+              if (item?.quantity <= 1) onRemove(item?._id)
+              else onUpdate(item?._id, item?.quantity - 1)
             }}
             className="w-7 h-7 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center text-sm font-bold transition-colors"
           >
             −
           </button>
-          <span className="w-6 text-center text-white text-sm font-semibold">{item.quantity}</span>
+          <span className="w-6 text-center text-white text-sm font-semibold">{item?.quantity}</span>
           <button
-            onClick={() => onUpdate(item._id, item.quantity + 1)}
+            onClick={() => onUpdate(item?._id, item?.quantity + 1)}
             className="w-7 h-7 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center text-sm font-bold transition-colors"
           >
             +
@@ -63,8 +62,8 @@ const CartItem = ({ item, onUpdate, onRemove }) => {
 
         {/* Remove */}
         <button
-          onClick={() => onRemove(item._id)}
-          id={`remove-cart-${item._id}`}
+          onClick={() => onRemove(item?._id)}
+          id={`remove-cart-${item?._id}`}
           className="text-xs text-slate-500 hover:text-red-400 transition-colors"
         >
           Remove
@@ -98,7 +97,6 @@ const CartPage = () => {
   const actionLoading = useSelector(selectCartActionLoading)
   const total = useSelector(selectCartTotal)
   const isAuthenticated = useSelector(selectIsAuthenticated)
-
   useEffect(() => {
     if (isAuthenticated) dispatch(fetchCart())
   }, [dispatch, isAuthenticated])
