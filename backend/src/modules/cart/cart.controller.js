@@ -20,7 +20,9 @@ export const addItemToCartController = asyncHandler(async (req, res) => {
 
 export const updateCartItemQuantityController = asyncHandler(async (req, res) => {
   const cart = await updateCartItemQuantity(req.user.id, req.params.itemId, req.body.quantity);
-  return res.status(200).json(new ApiResponse(200, cart, 'Cart item quantity updated successfully'));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, cart, 'Cart item quantity updated successfully'));
 });
 
 export const removeCartItemController = asyncHandler(async (req, res) => {

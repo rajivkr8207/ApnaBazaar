@@ -108,11 +108,7 @@ export const createAddressValidation = [
     .matches(/^[1-9][0-9]{5}$/)
     .withMessage('Invalid Indian PIN code (must be 6 digits and cannot start with 0)'),
 
-  body('isDefault')
-    .optional()
-    .isBoolean()
-    .withMessage('isDefault must be a boolean')
-    .toBoolean(),
+  body('isDefault').optional().isBoolean().withMessage('isDefault must be a boolean').toBoolean(),
 
   validate,
 ];
@@ -223,11 +219,7 @@ export const updateAddressValidation = [
     .matches(/^[1-9][0-9]{5}$/)
     .withMessage('Invalid Indian PIN code (must be 6 digits and cannot start with 0)'),
 
-  body('isDefault')
-    .optional()
-    .isBoolean()
-    .withMessage('isDefault must be a boolean')
-    .toBoolean(),
+  body('isDefault').optional().isBoolean().withMessage('isDefault must be a boolean').toBoolean(),
 
   validate,
 ];

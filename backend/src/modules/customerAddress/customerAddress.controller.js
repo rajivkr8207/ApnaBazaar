@@ -44,5 +44,7 @@ export const setDefaultCustomerAddressController = asyncHandler(async (req, res)
 
 export const getDefaultCustomerAddressController = asyncHandler(async (req, res) => {
   const address = await getDefaultCustomerAddress(getUserId(req));
-  return res.status(200).json(new ApiResponse(200, address, 'Default address retrieved successfully'));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, address, 'Default address retrieved successfully'));
 });

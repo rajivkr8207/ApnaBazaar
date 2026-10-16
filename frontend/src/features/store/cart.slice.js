@@ -102,8 +102,8 @@ export const selectCartActionLoading = (state) => state.cart.actionLoading
 export const selectCartError = (state) => state.cart.error
 export const selectCartTotal = (state) =>
   state.cart.items.reduce((sum, item) => {
-    const price = item.variantPrice > 0 ? item.variantPrice : item.price || 0
-    return sum + price * (item.quantity || 1)
+    const price = item?.price?.amount || 0
+    return sum + price * (item?.quantity || 1)
   }, 0)
 
 export default cartSlice.reducer

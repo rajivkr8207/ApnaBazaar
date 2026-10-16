@@ -20,12 +20,19 @@ export const createProductVariantController = asyncHandler(async (req, res) => {
     isActive: req.body.isActive,
   });
 
-  return res.status(201).json(new ApiResponse(201, variant, 'Product variant created successfully'));
+  return res
+    .status(201)
+    .json(new ApiResponse(201, variant, 'Product variant created successfully'));
 });
 
 export const getProductVariantsController = asyncHandler(async (req, res) => {
-  const variants = await getProductVariants({ productId: req.params.productId, sellerId: req.user.id });
-  return res.status(200).json(new ApiResponse(200, variants, 'Product variants fetched successfully'));
+  const variants = await getProductVariants({
+    productId: req.params.productId,
+    sellerId: req.user.id,
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, variants, 'Product variants fetched successfully'));
 });
 
 export const getProductVariantByIdController = asyncHandler(async (req, res) => {
@@ -35,7 +42,9 @@ export const getProductVariantByIdController = asyncHandler(async (req, res) => 
     sellerId: req.user.id,
   });
 
-  return res.status(200).json(new ApiResponse(200, variant, 'Product variant fetched successfully'));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, variant, 'Product variant fetched successfully'));
 });
 
 export const updateProductVariantController = asyncHandler(async (req, res) => {
@@ -46,7 +55,9 @@ export const updateProductVariantController = asyncHandler(async (req, res) => {
     payload: req.body,
   });
 
-  return res.status(200).json(new ApiResponse(200, variant, 'Product variant updated successfully'));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, variant, 'Product variant updated successfully'));
 });
 
 export const deleteProductVariantController = asyncHandler(async (req, res) => {

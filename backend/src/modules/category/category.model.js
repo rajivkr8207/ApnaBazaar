@@ -16,7 +16,10 @@ const categorySchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      match: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Category slug must be lowercase letters, numbers, and hyphens only'],
+      match: [
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        'Category slug must be lowercase letters, numbers, and hyphens only',
+      ],
     },
     description: {
       type: String,
@@ -73,7 +76,6 @@ const hasCircularHierarchy = async function (model, categoryId, currentCategoryI
 
   return false;
 };
-
 
 categorySchema.index({ name: 1, parentCategory: 1 }, { unique: false });
 

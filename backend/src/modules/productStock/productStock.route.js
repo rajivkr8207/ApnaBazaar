@@ -4,12 +4,20 @@ import {
   getProductStockController,
   upsertProductStockController,
 } from './productStock.controller.js';
-import { productStockRequestValidation, upsertProductStockValidation } from './productStock.validate.js';
+import {
+  productStockRequestValidation,
+  upsertProductStockValidation,
+} from './productStock.validate.js';
 
 const productStockRouter = Router();
 const sellerOnly = [verifyJWT, verifySeller];
 
-productStockRouter.get('/:productId/stock', sellerOnly, productStockRequestValidation, getProductStockController);
+productStockRouter.get(
+  '/:productId/stock',
+  sellerOnly,
+  productStockRequestValidation,
+  getProductStockController,
+);
 productStockRouter.patch(
   '/:productId/stock',
   sellerOnly,

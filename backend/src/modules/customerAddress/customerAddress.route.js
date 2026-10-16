@@ -27,9 +27,7 @@ customerAddressRouter
   .post(createAddressValidation, createCustomerAddressController);
 
 // Get the user's default address
-customerAddressRouter
-  .route('/default')
-  .get(getDefaultCustomerAddressController);
+customerAddressRouter.route('/default').get(getDefaultCustomerAddressController);
 
 // Set an address as default
 customerAddressRouter

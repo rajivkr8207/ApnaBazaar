@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import { Link } from 'react-router'
 import useAuth from '../hooks/UseAuth'
 import InputField from '../../../components/common/Inputfield'
@@ -57,23 +57,24 @@ const RoleCard = ({ role, selected, label, desc, icon, onSelect }) => (
 const Register = () => {
   const { handleRegister, loading, error, dismissError } = useAuth()
 
-  const [form, setForm] = useState({
-    fullName: '',
-    userName: '',
-    email: '',
-    mobile: '',
-    password: '',
-    role: ROLES.BUYER,
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      fullName: '',
+      username: '',
+      email: '',
+      mobile: '',
+      password: '',
+      role: ROLES.BUYER,
+    },
   })
 
-  const onChange = (e) => {
-    dismissError()
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-  }
-
-  const onSubmit = (e) => {
-    e.preventDefault()
-    handleRegister(form)
+  const onSubmit = (data) => {
+    handleRegister(data)
   }
 
   return (
@@ -95,86 +96,104 @@ const Register = () => {
         </div>
       )}
 
-      <form onSubmit={onSubmit} id="register-form" className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} id="register-form" className="flex flex-col gap-4">
 
         <InputField
           id="reg-fullName"
-          name="fullName"
           label="Full name"
           placeholder="Enter your full name"
-          value={form.fullName}
-          onChange={onChange}
-          required
-          autoComplete="fullname"
+          autoComplete="name"
+          error={errors.fullName?.message}
+          {...register('fullName', {
+            required: 'Full name is required',
+            onChange: () => dismissError(),
+          })}
         />
 
         {/* Email */}
         <InputField
           id="reg-email"
-          name="email"
           label="Email"
-          placeholder="[EMAIL_ADDRESS]"
-          value={form.email}
-          onChange={onChange}
-          required
+          type="email"
+          placeholder="you@example.com"
           autoComplete="email"
+          error={errors.email?.message}
+          {...register('email', {
+            required: 'Email is required',
+            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email address' },
+            onChange: () => dismissError(),
+          })}
         />
+
         <InputField
           id="reg-username"
-          name="username"
           label="Username"
           placeholder="@username"
-          value={form.username}
-          onChange={onChange}
-          required
           autoComplete="username"
+          error={errors.username?.message}
+          {...register('username', {
+            required: 'Username is required',
+            minLength: { value: 3, message: 'Username must be at least 3 characters' },
+            onChange: () => dismissError(),
+          })}
         />
 
         {/* Password */}
         <InputField
           id="reg-password"
-          name="password"
           label="Password"
           type="password"
           placeholder="Min. 6 characters"
-          value={form.password}
-          onChange={onChange}
-          required
           autoComplete="new-password"
+          error={errors.password?.message}
+          {...register('password', {
+            required: 'Password is required',
+            minLength: { value: 6, message: 'Password must be at least 6 characters' },
+            onChange: () => dismissError(),
+          })}
         />
+
         <InputField
           id="reg-mobile"
-          name="mobile"
           label="Mobile Number"
           placeholder="1234567890"
-          value={form.mobile}
-          onChange={onChange}
-          required
-          autoComplete="mobile"
+          autoComplete="tel"
+          error={errors.mobile?.message}
+          {...register('mobile', {
+            required: 'Mobile number is required',
+            pattern: { value: /^[0-9]{10}$/, message: 'Enter a valid 10-digit mobile number' },
+            onChange: () => dismissError(),
+          })}
         />
 
         {/* Role Selector */}
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-slate-400">I want to…</span>
-          <div className="flex gap-3">
-            <RoleCard
-              role={ROLES.BUYER}
-              selected={form.role === ROLES.BUYER}
-              label="Buy"
-              desc="Shop products"
-              icon="🛒"
-              onSelect={(r) => { dismissError(); setForm((p) => ({ ...p, role: r })) }}
-            />
-            <RoleCard
-              role={ROLES.SELLER}
-              selected={form.role === ROLES.SELLER}
-              label="Sell"
-              desc="List products"
-              icon="🏪"
-              onSelect={(r) => { dismissError(); setForm((p) => ({ ...p, role: r })) }}
-            />
-          </div>
-        </div>
+        <Controller
+          name="role"
+          control={control}
+          render={({ field }) => (
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-slate-400">I want to…</span>
+              <div className="flex gap-3">
+                <RoleCard
+                  role={ROLES.BUYER}
+                  selected={field.value === ROLES.BUYER}
+                  label="Buy"
+                  desc="Shop products"
+                  icon="🛒"
+                  onSelect={(r) => { dismissError(); field.onChange(r) }}
+                />
+                <RoleCard
+                  role={ROLES.SELLER}
+                  selected={field.value === ROLES.SELLER}
+                  label="Sell"
+                  desc="List products"
+                  icon="🏪"
+                  onSelect={(r) => { dismissError(); field.onChange(r) }}
+                />
+              </div>
+            </div>
+          )}
+        />
 
         <Button
           id="register-submit"

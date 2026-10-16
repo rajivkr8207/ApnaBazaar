@@ -261,7 +261,9 @@ export const getCatalogProducts = async ({
   }
 
   if (search) {
-    const escapedSearch = String(search).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedSearch = String(search)
+      .slice(0, 100)
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.$or = [
       { name: { $regex: escapedSearch, $options: 'i' } },
       { brand: { $regex: escapedSearch, $options: 'i' } },
@@ -292,7 +294,7 @@ export const getCatalogProducts = async ({
   const variants = productIds.length
     ? await ProductVariant.find({ product: { $in: productIds }, isActive: true })
         .select('product sku attributes images price currency')
-      .lean({ flattenMaps: true })
+        .lean({ flattenMaps: true })
     : [];
   const variantsByProduct = new Map();
 

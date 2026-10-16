@@ -11,7 +11,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   try {
     const decodedToken = jwt.verify(token, Config.jwt_access_secret);
     req.user = decodedToken;
-    next()
+    next();
   } catch (error) {
     throw new ApiError(401, 'Invalid token', error);
   }

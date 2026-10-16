@@ -18,7 +18,10 @@ export const createProductVariantValidation = [
     .trim()
     .isLength({ min: 3, max: 50 })
     .withMessage('Variant SKU must be between 3 and 50 characters'),
-  body('price').optional().isFloat({ min: 0 }).withMessage('Variant price must be a non-negative number'),
+  body('price')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Variant price must be a non-negative number'),
   body('currency')
     .optional()
     .isIn(['USD', 'EUR', 'GBP', 'JPY', 'INR'])
@@ -47,7 +50,10 @@ export const updateProductVariantValidation = [
     .withMessage('Variant SKU cannot be empty')
     .isLength({ min: 3, max: 50 })
     .withMessage('Variant SKU must be between 3 and 50 characters'),
-  body('price').optional().isFloat({ min: 0 }).withMessage('Variant price must be a non-negative number'),
+  body('price')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Variant price must be a non-negative number'),
   body('currency')
     .optional()
     .isIn(['USD', 'EUR', 'GBP', 'JPY', 'INR'])
@@ -63,7 +69,10 @@ export const updateProductVariantValidation = [
   body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
   body().custom((_, { req }) => {
     const allowedFields = ['sku', 'attributes', 'images', 'price', 'currency', 'isActive'];
-    if (!req.body || !allowedFields.some((field) => Object.prototype.hasOwnProperty.call(req.body, field))) {
+    if (
+      !req.body ||
+      !allowedFields.some((field) => Object.prototype.hasOwnProperty.call(req.body, field))
+    ) {
       throw new Error('At least one valid variant field must be provided');
     }
     return true;

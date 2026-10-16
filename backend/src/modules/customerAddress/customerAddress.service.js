@@ -9,10 +9,7 @@ export const createCustomerAddress = async (userId, data) => {
   const shouldBeDefault = existingCount === 0 ? true : Boolean(data.isDefault);
 
   if (shouldBeDefault && existingCount > 0) {
-    await CustomerAddress.updateMany(
-      { user: userId },
-      { $set: { isDefault: false } }
-    );
+    await CustomerAddress.updateMany({ user: userId }, { $set: { isDefault: false } });
   }
 
   const address = await CustomerAddress.create({
@@ -66,7 +63,7 @@ export const updateCustomerAddress = async (userId, addressId, updateData) => {
   if (updateData.isDefault === true) {
     await CustomerAddress.updateMany(
       { user: userId, _id: { $ne: addressId } },
-      { $set: { isDefault: false } }
+      { $set: { isDefault: false } },
     );
   }
 
@@ -124,10 +121,7 @@ export const setDefaultCustomerAddress = async (userId, addressId) => {
     throw new ApiError(404, 'Address not found');
   }
 
-  await CustomerAddress.updateMany(
-    { user: userId },
-    { $set: { isDefault: false } }
-  );
+  await CustomerAddress.updateMany({ user: userId }, { $set: { isDefault: false } });
 
   address.isDefault = true;
   await address.save();

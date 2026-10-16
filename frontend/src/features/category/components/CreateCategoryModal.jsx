@@ -1,51 +1,48 @@
-import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import useCategory from '../hooks/useCategory'
 import Button from '../../../components/common/Button'
 import InputField from '../../../components/common/Inputfield'
 
 const CreateCategoryModal = ({ isOpen, onClose, onCreated }) => {
   const { categories, handleCreateCategory, loading } = useCategory()
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    slug: '',
-    parentCategory: '',
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      name: '',
+      description: '',
+      slug: '',
+      parentCategory: '',
+    },
   })
 
   if (!isOpen) return null
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => {
-      const next = { ...prev, [name]: value }
-      if (name === 'name' && !prev.slug) {
-        next.slug = value
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '')
-      }
-      return next
-    })
-  }
+  const onSubmit = async (data) => {
+    if (!data.name.trim()) return
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!formData.name.trim()) return
-
-    const payload = {
-      name: formData.name.trim(),
-    }
-    if (formData.slug.trim()) payload.slug = formData.slug.trim()
-    if (formData.description.trim()) payload.description = formData.description.trim()
-    if (formData.parentCategory) payload.parentCategory = formData.parentCategory
+    const payload = { name: data.name.trim() }
+    if (data.slug.trim()) payload.slug = data.slug.trim()
+    if (data.description.trim()) payload.description = data.description.trim()
+    if (data.parentCategory) payload.parentCategory = data.parentCategory
 
     const result = await handleCreateCategory(payload)
     if (result) {
-      setFormData({ name: '', description: '', slug: '', parentCategory: '' })
+      reset()
       if (onCreated) onCreated(result.data || result)
       onClose()
     }
+  }
+
+  const handleClose = () => {
+    reset()
+    onClose()
   }
 
   return (
@@ -63,7 +60,7 @@ const CreateCategoryModal = ({ isOpen, onClose, onCreated }) => {
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
           >
             ✕
@@ -71,24 +68,37 @@ const CreateCategoryModal = ({ isOpen, onClose, onCreated }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <InputField
             id="category-name"
             label="Category Name *"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
             placeholder="e.g. Footwear, Electronics"
-            required
+            error={errors.name?.message}
+            {...register('name', {
+              required: 'Category name is required',
+              onChange: (e) => {
+                // Auto-generate slug from name only if slug is currently empty
+                const currentSlug = watch('slug')
+                if (!currentSlug) {
+                  setValue(
+                    'slug',
+                    e.target.value
+                      .toLowerCase()
+                      .trim()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-+|-+$/g, ''),
+                  )
+                }
+              },
+            })}
           />
 
           <InputField
             id="category-slug"
             label="Category Slug (Optional)"
-            name="slug"
-            value={formData.slug}
-            onChange={handleChange}
             placeholder="e.g. footwear"
+            error={errors.slug?.message}
+            {...register('slug')}
           />
 
           {/* Parent category select */}
@@ -97,9 +107,7 @@ const CreateCategoryModal = ({ isOpen, onClose, onCreated }) => {
               Parent Category (Optional)
             </label>
             <select
-              name="parentCategory"
-              value={formData.parentCategory}
-              onChange={handleChange}
+              {...register('parentCategory')}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-200 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all"
             >
               <option value="">None (Top-Level Category)</option>
@@ -116,12 +124,10 @@ const CreateCategoryModal = ({ isOpen, onClose, onCreated }) => {
               Description (Optional)
             </label>
             <textarea
-              name="description"
               rows={3}
-              value={formData.description}
-              onChange={handleChange}
               placeholder="Short description of this category..."
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-200 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all resize-none placeholder:text-slate-600"
+              {...register('description')}
             />
           </div>
 
@@ -132,7 +138,7 @@ const CreateCategoryModal = ({ isOpen, onClose, onCreated }) => {
               variant="outline"
               size="md"
               fullWidth
-              onClick={onClose}
+              onClick={handleClose}
             >
               Cancel
             </Button>
